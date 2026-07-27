@@ -1,0 +1,2545 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#f2f0e8">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <title>PUBG 灵敏度调试助手</title>
+  <style>
+    :root {
+      --paper: #f2f0e8;
+      --paper-strong: #fffdf5;
+      --ink: #161a19;
+      --muted: #68706c;
+      --line: #cfd1c7;
+      --line-dark: #232826;
+      --signal: #f4b629;
+      --signal-strong: #e39a00;
+      --mint: #8ed6bb;
+      --danger: #d9674f;
+      --shadow: 0 18px 50px rgba(22, 26, 25, .09);
+      --radius: 22px;
+      --display: "Bahnschrift Condensed", "DIN Condensed", "Microsoft YaHei UI", sans-serif;
+      --body: "Microsoft YaHei UI", "Noto Sans CJK SC", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      min-width: 320px;
+      color: var(--ink);
+      background:
+        linear-gradient(rgba(22, 26, 25, .035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(22, 26, 25, .035) 1px, transparent 1px),
+        var(--paper);
+      background-size: 28px 28px;
+      font-family: var(--body);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    a {
+      color: inherit;
+    }
+
+    button {
+      color: inherit;
+    }
+
+    .noise {
+      position: fixed;
+      inset: 0;
+      z-index: 30;
+      pointer-events: none;
+      opacity: .18;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.08'/%3E%3C/svg%3E");
+      mix-blend-mode: multiply;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 66px;
+      padding: 12px clamp(18px, 4vw, 64px);
+      border-bottom: 1px solid rgba(22, 26, 25, .16);
+      background: rgba(242, 240, 232, .9);
+      backdrop-filter: blur(18px);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      font-family: var(--display);
+      font-weight: 800;
+      letter-spacing: .08em;
+    }
+
+    .brand-mark {
+      display: grid;
+      width: 32px;
+      height: 32px;
+      place-items: center;
+      border: 2px solid var(--ink);
+      background: var(--signal);
+      box-shadow: 4px 4px 0 var(--ink);
+      font-size: 12px;
+    }
+
+    .top-meta {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #39a877;
+      box-shadow: 0 0 0 5px rgba(57, 168, 119, .12);
+    }
+
+    main {
+      width: min(1440px, calc(100% - 36px));
+      margin: 0 auto;
+      padding: 46px 0 80px;
+    }
+
+    .eyebrow {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 0 0 14px;
+      color: var(--muted);
+      font-family: var(--display);
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: .17em;
+      text-transform: uppercase;
+    }
+
+    .eyebrow::before {
+      width: 28px;
+      height: 3px;
+      background: var(--signal);
+      content: "";
+    }
+
+    .hero {
+      position: relative;
+      display: grid;
+      grid-template-columns: minmax(0, 1.25fr) minmax(310px, .75fr);
+      gap: clamp(28px, 5vw, 90px);
+      align-items: end;
+      min-height: 430px;
+      padding: clamp(28px, 5vw, 70px);
+      overflow: hidden;
+      border: 1px solid var(--line-dark);
+      border-radius: 32px;
+      background:
+        radial-gradient(circle at 88% 18%, rgba(244, 182, 41, .35), transparent 28%),
+        var(--paper-strong);
+      box-shadow: var(--shadow);
+    }
+
+    .hero::after {
+      position: absolute;
+      right: -88px;
+      top: -100px;
+      width: 330px;
+      height: 330px;
+      border: 1px solid rgba(22, 26, 25, .18);
+      border-radius: 50%;
+      box-shadow:
+        0 0 0 34px rgba(22, 26, 25, .025),
+        0 0 0 68px rgba(22, 26, 25, .025);
+      content: "";
+    }
+
+    h1 {
+      position: relative;
+      z-index: 1;
+      max-width: 840px;
+      margin: 0;
+      font-family: var(--display);
+      font-size: clamp(56px, 8.4vw, 128px);
+      font-stretch: condensed;
+      font-weight: 900;
+      letter-spacing: -.065em;
+      line-height: .82;
+      text-transform: uppercase;
+    }
+
+    h1 .signal {
+      display: inline-block;
+      padding: .06em .13em .04em;
+      background: var(--signal);
+      box-shadow: .08em .08em 0 var(--ink);
+      transform: rotate(-1.2deg);
+    }
+
+    .hero-copy {
+      position: relative;
+      z-index: 1;
+      max-width: 690px;
+      margin: 28px 0 0;
+      color: #4e5652;
+      font-size: clamp(15px, 1.4vw, 19px);
+      line-height: 1.8;
+    }
+
+    .hero-copy strong {
+      color: var(--ink);
+    }
+
+    .hero-readout {
+      position: relative;
+      z-index: 2;
+      display: grid;
+      gap: 14px;
+      padding: 22px;
+      border: 1px solid var(--ink);
+      border-radius: 20px;
+      background: rgba(255, 253, 245, .86);
+      box-shadow: 8px 8px 0 rgba(22, 26, 25, .1);
+    }
+
+    .readout-label {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+    }
+
+    .readout-value {
+      display: flex;
+      align-items: baseline;
+      gap: 9px;
+      font-family: var(--display);
+      font-size: clamp(48px, 5vw, 78px);
+      font-weight: 900;
+      letter-spacing: -.04em;
+      line-height: .88;
+    }
+
+    .readout-value span {
+      color: var(--muted);
+      font-size: 16px;
+      letter-spacing: .03em;
+    }
+
+    .readout-scale {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 4px;
+    }
+
+    .readout-scale i {
+      height: 18px;
+      border: 1px solid rgba(22, 26, 25, .2);
+      background: #e7e5dc;
+    }
+
+    .readout-scale i.active {
+      border-color: var(--ink);
+      background: var(--signal);
+    }
+
+    .readout-foot {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      padding-top: 4px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .section {
+      margin-top: 84px;
+    }
+
+    .section-heading {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(260px, 430px);
+      gap: 28px;
+      align-items: end;
+      margin-bottom: 30px;
+    }
+
+    .section-heading h2 {
+      margin: 0;
+      font-family: var(--display);
+      font-size: clamp(42px, 6vw, 78px);
+      font-weight: 900;
+      letter-spacing: -.04em;
+      line-height: .94;
+    }
+
+    .section-heading p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.75;
+    }
+
+    .profile-grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 16px;
+    }
+
+    .profile-card {
+      position: relative;
+      min-height: 150px;
+      padding: 23px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(255, 253, 245, .75);
+      transition: border-color .2s ease, transform .2s ease, box-shadow .2s ease;
+    }
+
+    .profile-card:hover,
+    .profile-card:focus-within {
+      border-color: var(--ink);
+      box-shadow: 0 12px 30px rgba(22, 26, 25, .07);
+      transform: translateY(-2px);
+    }
+
+    .profile-card.span-3 {
+      grid-column: span 3;
+    }
+
+    .profile-card.span-4 {
+      grid-column: span 4;
+    }
+
+    .profile-card.span-6 {
+      grid-column: span 6;
+    }
+
+    .field-label {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 18px;
+      font-family: var(--display);
+      font-size: 15px;
+      font-weight: 900;
+      letter-spacing: .04em;
+    }
+
+    .field-index {
+      color: var(--signal-strong);
+      font-size: 11px;
+      letter-spacing: .12em;
+    }
+
+    .number-wrap {
+      display: flex;
+      align-items: end;
+      gap: 9px;
+    }
+
+    .number-wrap input {
+      width: 100%;
+      min-width: 0;
+      padding: 0 0 6px;
+      border: 0;
+      border-bottom: 2px solid var(--ink);
+      outline: 0;
+      background: transparent;
+      font-family: var(--display);
+      font-size: 42px;
+      font-weight: 900;
+      letter-spacing: -.03em;
+    }
+
+    .number-wrap .unit {
+      padding-bottom: 10px;
+      color: var(--muted);
+      font-family: var(--display);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .field-hint {
+      margin: 12px 0 0;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.55;
+    }
+
+    .segments {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .segments input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .segments label {
+      display: grid;
+      min-height: 54px;
+      padding: 9px 8px;
+      place-items: center;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      color: var(--muted);
+      background: rgba(255, 255, 255, .45);
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 800;
+      text-align: center;
+      transition: .2s ease;
+    }
+
+    .segments input:checked + label {
+      border-color: var(--ink);
+      color: var(--ink);
+      background: var(--signal);
+      box-shadow: 3px 3px 0 var(--ink);
+      transform: translate(-2px, -2px);
+    }
+
+    .segments input:focus-visible + label {
+      outline: 3px solid rgba(244, 182, 41, .45);
+      outline-offset: 2px;
+    }
+
+    .test-stack {
+      display: grid;
+      gap: 22px;
+    }
+
+    .test-card {
+      display: grid;
+      grid-template-columns: minmax(220px, 310px) minmax(0, 1fr);
+      min-height: 500px;
+      overflow: hidden;
+      border: 1px solid var(--line-dark);
+      border-radius: 28px;
+      background: var(--paper-strong);
+      box-shadow: 0 16px 38px rgba(22, 26, 25, .07);
+    }
+
+    .test-info {
+      display: flex;
+      flex-direction: column;
+      padding: 30px;
+      border-right: 1px solid var(--line-dark);
+      background:
+        linear-gradient(155deg, rgba(244, 182, 41, .2), transparent 38%),
+        #f0eee5;
+    }
+
+    .test-id {
+      color: var(--signal-strong);
+      font-family: var(--display);
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: .16em;
+    }
+
+    .test-info h3 {
+      margin: 18px 0 13px;
+      font-family: var(--display);
+      font-size: 42px;
+      font-weight: 900;
+      letter-spacing: -.03em;
+      line-height: 1;
+    }
+
+    .test-info > p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.75;
+    }
+
+    .test-metrics {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: auto;
+      padding-top: 25px;
+    }
+
+    .metric {
+      min-height: 86px;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(255, 253, 245, .72);
+    }
+
+    .metric-label {
+      display: block;
+      margin-bottom: 9px;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: .08em;
+    }
+
+    .metric-value {
+      font-family: var(--display);
+      font-size: 27px;
+      font-weight: 900;
+    }
+
+    .arena-wrap {
+      min-width: 0;
+      padding: 16px;
+      background: #dcdcd4;
+    }
+
+    .arena {
+      position: relative;
+      height: 100%;
+      min-height: 466px;
+      overflow: hidden;
+      border: 1px solid #303633;
+      border-radius: 18px;
+      background:
+        radial-gradient(circle at center, rgba(142, 214, 187, .11), transparent 42%),
+        linear-gradient(rgba(255, 255, 255, .035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, .035) 1px, transparent 1px),
+        #1c2220;
+      background-size: auto, 24px 24px, 24px 24px, auto;
+      cursor: none;
+      touch-action: none;
+      user-select: none;
+    }
+
+    .arena::before,
+    .arena::after {
+      position: absolute;
+      z-index: 0;
+      content: "";
+      pointer-events: none;
+    }
+
+    .arena::before {
+      inset: 16px;
+      border: 1px solid rgba(255, 255, 255, .08);
+      border-radius: 12px;
+    }
+
+    .arena::after {
+      left: 50%;
+      top: 0;
+      width: 1px;
+      height: 100%;
+      background: rgba(255, 255, 255, .045);
+    }
+
+    .arena-hud {
+      position: absolute;
+      z-index: 4;
+      top: 19px;
+      left: 20px;
+      right: 20px;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 14px;
+      pointer-events: none;
+    }
+
+    .arena-status {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 8px 10px;
+      border: 1px solid rgba(255, 255, 255, .14);
+      border-radius: 999px;
+      color: rgba(255, 255, 255, .7);
+      background: rgba(10, 14, 13, .48);
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: .1em;
+      backdrop-filter: blur(8px);
+    }
+
+    .arena-status i {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #78817d;
+    }
+
+    .test-card[data-state="running"] .arena-status i {
+      background: var(--signal);
+      box-shadow: 0 0 0 5px rgba(244, 182, 41, .12);
+      animation: blink 1s steps(2, end) infinite;
+    }
+
+    .test-card[data-state="complete"] .arena-status i {
+      background: var(--mint);
+    }
+
+    .timer {
+      color: #fff;
+      font-family: var(--display);
+      font-size: 38px;
+      font-weight: 900;
+      letter-spacing: -.03em;
+      line-height: 1;
+      text-shadow: 0 2px 18px rgba(0, 0, 0, .5);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .start-gate,
+    .retest-gate {
+      position: absolute;
+      z-index: 5;
+      left: 50%;
+      top: 50%;
+      display: grid;
+      width: 130px;
+      height: 130px;
+      place-items: center;
+      border: 1px solid rgba(244, 182, 41, .85);
+      border-radius: 50%;
+      color: #fff;
+      background: rgba(244, 182, 41, .08);
+      box-shadow:
+        0 0 0 14px rgba(244, 182, 41, .04),
+        inset 0 0 35px rgba(244, 182, 41, .08);
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+
+    .start-gate::before,
+    .retest-gate::before {
+      position: absolute;
+      inset: -9px;
+      border: 1px dashed rgba(244, 182, 41, .42);
+      border-radius: 50%;
+      content: "";
+      animation: spin 12s linear infinite;
+    }
+
+    .gate-copy {
+      max-width: 94px;
+      font-size: 11px;
+      font-weight: 800;
+      line-height: 1.45;
+      text-align: center;
+    }
+
+    .gate-copy b {
+      display: block;
+      margin-bottom: 3px;
+      color: var(--signal);
+      font-family: var(--display);
+      font-size: 19px;
+      letter-spacing: .04em;
+    }
+
+    .test-card[data-state="running"] .start-gate,
+    .test-card[data-state="complete"] .start-gate {
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(.7);
+      transition: .25s ease;
+    }
+
+    .retest-gate {
+      left: auto;
+      right: 28px;
+      top: auto;
+      bottom: 28px;
+      width: 84px;
+      height: 84px;
+      opacity: 0;
+      transform: scale(.7);
+    }
+
+    .test-card[data-state="complete"] .retest-gate {
+      opacity: 1;
+      transform: scale(1);
+      transition: .28s ease;
+    }
+
+    .retest-gate .gate-copy {
+      font-size: 9px;
+    }
+
+    .retest-gate .gate-copy b {
+      font-size: 13px;
+    }
+
+    .crosshair {
+      --x: 50%;
+      --y: 50%;
+      position: absolute;
+      z-index: 10;
+      left: var(--x);
+      top: var(--y);
+      width: 38px;
+      height: 38px;
+      opacity: 0;
+      filter: drop-shadow(0 1px 2px rgba(0, 0, 0, .9));
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+
+    .arena.pointer-inside .crosshair {
+      opacity: 1;
+    }
+
+    .crosshair::before,
+    .crosshair::after {
+      position: absolute;
+      background: #fff;
+      box-shadow: 0 0 0 1px rgba(0, 0, 0, .75);
+      content: "";
+    }
+
+    .crosshair::before {
+      left: 50%;
+      top: 0;
+      width: 1px;
+      height: 100%;
+    }
+
+    .crosshair::after {
+      left: 0;
+      top: 50%;
+      width: 100%;
+      height: 1px;
+    }
+
+    .crosshair-dot {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 4px;
+      height: 4px;
+      border: 1px solid #111;
+      border-radius: 50%;
+      background: var(--signal);
+      transform: translate(-50%, -50%);
+    }
+
+    .tracking-target,
+    .flick-target {
+      position: absolute;
+      z-index: 3;
+      left: 50%;
+      top: 50%;
+      width: 52px;
+      height: 52px;
+      opacity: 0;
+      border: 2px solid var(--signal);
+      border-radius: 50%;
+      background:
+        radial-gradient(circle, var(--signal) 0 11%, transparent 12% 39%, rgba(244, 182, 41, .25) 40% 44%, transparent 45%);
+      box-shadow: 0 0 32px rgba(244, 182, 41, .26);
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+
+    .tracking-target::before,
+    .flick-target::before {
+      position: absolute;
+      inset: 7px;
+      border: 1px solid rgba(255, 255, 255, .5);
+      border-radius: 50%;
+      content: "";
+    }
+
+    .test-card[data-state="running"] .tracking-target,
+    .test-card[data-state="running"] .flick-target {
+      opacity: 1;
+    }
+
+    .tracking-target.locked {
+      border-color: var(--mint);
+      background:
+        radial-gradient(circle, var(--mint) 0 13%, transparent 14% 39%, rgba(142, 214, 187, .34) 40% 46%, transparent 47%);
+      box-shadow: 0 0 38px rgba(142, 214, 187, .4);
+    }
+
+    .flick-target {
+      width: 48px;
+      height: 48px;
+      border-radius: 9px;
+      background:
+        linear-gradient(90deg, transparent 47%, var(--signal) 48% 52%, transparent 53%),
+        linear-gradient(transparent 47%, var(--signal) 48% 52%, transparent 53%);
+      transform: translate(-50%, -50%) rotate(45deg);
+    }
+
+    .flick-target::before {
+      inset: 8px;
+      border-radius: 4px;
+    }
+
+    .hit-burst {
+      position: absolute;
+      z-index: 7;
+      width: 70px;
+      height: 70px;
+      border: 2px solid var(--mint);
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      animation: burst .38s ease-out forwards;
+    }
+
+    .progress-rail {
+      position: absolute;
+      z-index: 2;
+      left: 10%;
+      right: 10%;
+      bottom: 46px;
+      height: 8px;
+      border: 1px solid rgba(255, 255, 255, .2);
+      background: rgba(0, 0, 0, .28);
+      pointer-events: none;
+    }
+
+    .progress-fill {
+      width: 0;
+      height: 100%;
+      background: var(--signal);
+      box-shadow: 0 0 20px rgba(244, 182, 41, .35);
+    }
+
+    .compass {
+      --turn: 0deg;
+      position: absolute;
+      z-index: 2;
+      left: 50%;
+      top: 50%;
+      width: min(52vw, 285px);
+      height: min(52vw, 285px);
+      max-width: 70%;
+      max-height: 70%;
+      border: 1px solid rgba(255, 255, 255, .23);
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+
+    .compass::before,
+    .compass::after {
+      position: absolute;
+      left: 50%;
+      content: "";
+      transform-origin: 50% 100%;
+    }
+
+    .compass::before {
+      top: 12px;
+      width: 2px;
+      height: calc(50% - 12px);
+      background: linear-gradient(transparent, var(--signal));
+      transform: translateX(-50%) rotate(var(--turn));
+    }
+
+    .compass::after {
+      top: 50%;
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--signal);
+      box-shadow: 0 0 20px rgba(244, 182, 41, .7);
+      transform: translate(-50%, -50%);
+    }
+
+    .compass-tick {
+      position: absolute;
+      inset: 13px;
+      border: 18px dotted rgba(255, 255, 255, .18);
+      border-radius: 50%;
+    }
+
+    .compass-label {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      color: #fff;
+      font-family: var(--display);
+      font-size: 46px;
+      font-weight: 900;
+      transform: translate(-50%, -50%);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .turn-hint {
+      position: absolute;
+      z-index: 2;
+      left: 50%;
+      bottom: 72px;
+      color: rgba(255, 255, 255, .58);
+      font-size: 11px;
+      letter-spacing: .08em;
+      text-align: center;
+      transform: translateX(-50%);
+      pointer-events: none;
+    }
+
+    .completion-panel {
+      position: absolute;
+      z-index: 6;
+      left: 50%;
+      top: 50%;
+      display: grid;
+      min-width: min(340px, 76%);
+      padding: 24px;
+      place-items: center;
+      border: 1px solid rgba(142, 214, 187, .55);
+      border-radius: 18px;
+      opacity: 0;
+      color: #fff;
+      background: rgba(15, 20, 18, .88);
+      box-shadow: 0 16px 60px rgba(0, 0, 0, .32);
+      transform: translate(-50%, -45%) scale(.94);
+      pointer-events: none;
+      backdrop-filter: blur(13px);
+    }
+
+    .test-card[data-state="complete"] .completion-panel {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+      transition: .3s ease;
+    }
+
+    .completion-panel small {
+      color: var(--mint);
+      font-size: 10px;
+      font-weight: 900;
+      letter-spacing: .16em;
+    }
+
+    .completion-panel strong {
+      margin: 8px 0 4px;
+      font-family: var(--display);
+      font-size: 48px;
+      font-weight: 900;
+      line-height: 1;
+    }
+
+    .completion-panel span {
+      color: rgba(255, 255, 255, .64);
+      font-size: 11px;
+    }
+
+    .results-shell {
+      position: relative;
+      overflow: hidden;
+      border: 1px solid var(--line-dark);
+      border-radius: 30px;
+      background: #181d1b;
+      box-shadow: var(--shadow);
+    }
+
+    .results-empty {
+      display: grid;
+      min-height: 360px;
+      padding: 40px;
+      place-items: center;
+      color: rgba(255, 255, 255, .5);
+      text-align: center;
+    }
+
+    .results-empty strong {
+      display: block;
+      margin-bottom: 10px;
+      color: #fff;
+      font-family: var(--display);
+      font-size: 34px;
+    }
+
+    .results-content {
+      display: none;
+      padding: clamp(24px, 4vw, 52px);
+    }
+
+    .results-shell.ready .results-empty {
+      display: none;
+    }
+
+    .results-shell.ready .results-content {
+      display: block;
+      animation: reveal .5s ease both;
+    }
+
+    .results-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 30px;
+      margin-bottom: 34px;
+    }
+
+    .results-head h3 {
+      margin: 0;
+      color: #fff;
+      font-family: var(--display);
+      font-size: clamp(40px, 6vw, 72px);
+      font-weight: 900;
+      letter-spacing: -.04em;
+      line-height: .95;
+    }
+
+    .results-head p {
+      max-width: 600px;
+      margin: 13px 0 0;
+      color: rgba(255, 255, 255, .57);
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    .confidence {
+      flex: 0 0 auto;
+      padding: 10px 14px;
+      border: 1px solid rgba(142, 214, 187, .34);
+      border-radius: 999px;
+      color: var(--mint);
+      background: rgba(142, 214, 187, .08);
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: .08em;
+    }
+
+    .settings-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+
+    .setting-tile {
+      min-height: 142px;
+      padding: 19px;
+      border: 1px solid rgba(255, 255, 255, .13);
+      border-radius: 16px;
+      background: rgba(255, 255, 255, .035);
+    }
+
+    .setting-tile.primary {
+      border-color: var(--signal);
+      background: rgba(244, 182, 41, .09);
+    }
+
+    .setting-tile .setting-name {
+      display: block;
+      min-height: 34px;
+      color: rgba(255, 255, 255, .56);
+      font-size: 11px;
+      line-height: 1.45;
+    }
+
+    .setting-tile .setting-value {
+      display: block;
+      margin-top: 11px;
+      color: #fff;
+      font-family: var(--display);
+      font-size: 48px;
+      font-weight: 900;
+      letter-spacing: -.04em;
+      line-height: 1;
+    }
+
+    .setting-tile.primary .setting-value {
+      color: var(--signal);
+    }
+
+    .scope-panel {
+      display: grid;
+      grid-template-columns: 1.05fr 1.95fr;
+      gap: 22px;
+      margin-top: 22px;
+      padding-top: 22px;
+      border-top: 1px solid rgba(255, 255, 255, .12);
+    }
+
+    .scope-summary {
+      padding: 22px;
+      border-radius: 16px;
+      color: #171b19;
+      background: var(--signal);
+    }
+
+    .scope-summary small {
+      display: block;
+      font-size: 10px;
+      font-weight: 900;
+      letter-spacing: .1em;
+    }
+
+    .scope-summary strong {
+      display: block;
+      margin: 12px 0 8px;
+      font-family: var(--display);
+      font-size: 36px;
+      font-weight: 900;
+      line-height: 1;
+    }
+
+    .scope-summary p {
+      margin: 0;
+      font-size: 11px;
+      line-height: 1.6;
+    }
+
+    .scope-values {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 8px;
+    }
+
+    .scope-item {
+      display: grid;
+      min-height: 124px;
+      padding: 14px 8px;
+      place-items: center;
+      border: 1px solid rgba(255, 255, 255, .12);
+      border-radius: 14px;
+      color: rgba(255, 255, 255, .5);
+      background: rgba(255, 255, 255, .03);
+      text-align: center;
+    }
+
+    .scope-item strong {
+      display: block;
+      color: #fff;
+      font-family: var(--display);
+      font-size: 34px;
+      font-weight: 900;
+    }
+
+    .advice-panel {
+      display: grid;
+      grid-template-columns: minmax(0, 1.25fr) minmax(260px, .75fr);
+      gap: 24px;
+      margin-top: 24px;
+    }
+
+    .advice-list {
+      display: grid;
+      gap: 8px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .advice-list li {
+      display: grid;
+      grid-template-columns: 28px 1fr;
+      gap: 11px;
+      align-items: start;
+      padding: 14px 16px;
+      border: 1px solid rgba(255, 255, 255, .1);
+      border-radius: 13px;
+      color: rgba(255, 255, 255, .72);
+      font-size: 12px;
+      line-height: 1.65;
+    }
+
+    .advice-list b {
+      display: grid;
+      width: 24px;
+      height: 24px;
+      place-items: center;
+      border-radius: 50%;
+      color: var(--ink);
+      background: var(--signal);
+      font-family: var(--display);
+      font-size: 11px;
+    }
+
+    .copy-card {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 20px;
+      padding: 22px;
+      border: 1px solid rgba(255, 255, 255, .14);
+      border-radius: 16px;
+      background: rgba(255, 255, 255, .04);
+    }
+
+    .copy-card p {
+      margin: 0;
+      color: rgba(255, 255, 255, .57);
+      font-size: 12px;
+      line-height: 1.65;
+    }
+
+    .copy-button {
+      width: 100%;
+      padding: 14px 18px;
+      border: 1px solid var(--signal);
+      border-radius: 12px;
+      color: var(--ink);
+      background: var(--signal);
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: .05em;
+      transition: .2s ease;
+    }
+
+    .copy-button:hover {
+      background: #ffd064;
+      box-shadow: 4px 4px 0 rgba(244, 182, 41, .3);
+      transform: translate(-2px, -2px);
+    }
+
+    .method-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+
+    .method-card {
+      padding: 25px;
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      background: rgba(255, 253, 245, .72);
+    }
+
+    .method-card b {
+      display: block;
+      margin-bottom: 14px;
+      font-family: var(--display);
+      font-size: 21px;
+      font-weight: 900;
+    }
+
+    .method-card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.75;
+    }
+
+    .method-card code {
+      color: var(--ink);
+      font-family: Consolas, monospace;
+      font-size: 11px;
+    }
+
+    footer {
+      display: flex;
+      justify-content: space-between;
+      gap: 24px;
+      width: min(1440px, calc(100% - 36px));
+      margin: 0 auto;
+      padding: 25px 0 36px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 10px;
+      line-height: 1.6;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes blink {
+      50% { opacity: .35; }
+    }
+
+    @keyframes burst {
+      from { opacity: 1; transform: translate(-50%, -50%) scale(.35); }
+      to { opacity: 0; transform: translate(-50%, -50%) scale(1.25); }
+    }
+
+    @keyframes reveal {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 1050px) {
+      .hero {
+        grid-template-columns: 1fr;
+        min-height: 0;
+      }
+
+      .hero-readout {
+        width: min(100%, 460px);
+      }
+
+      .profile-card.span-3 {
+        grid-column: span 6;
+      }
+
+      .profile-card.span-4 {
+        grid-column: span 6;
+      }
+
+      .test-card {
+        grid-template-columns: 1fr;
+      }
+
+      .test-info {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 18px 28px;
+        border-right: 0;
+        border-bottom: 1px solid var(--line-dark);
+      }
+
+      .test-info h3 {
+        margin-bottom: 8px;
+      }
+
+      .test-info > p {
+        max-width: 580px;
+      }
+
+      .test-metrics {
+        grid-column: 2;
+        grid-row: 1 / span 3;
+        width: 230px;
+        padding: 0;
+      }
+
+      .settings-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 760px) {
+      .top-meta span:last-child {
+        display: none;
+      }
+
+      main {
+        width: min(100% - 24px, 1440px);
+        padding-top: 22px;
+      }
+
+      .hero {
+        padding: 29px 22px;
+        border-radius: 24px;
+      }
+
+      .section {
+        margin-top: 62px;
+      }
+
+      .section-heading {
+        grid-template-columns: 1fr;
+        gap: 14px;
+      }
+
+      .profile-card.span-3,
+      .profile-card.span-4,
+      .profile-card.span-6 {
+        grid-column: span 12;
+      }
+
+      .test-card {
+        border-radius: 22px;
+      }
+
+      .test-info {
+        display: block;
+        padding: 24px;
+      }
+
+      .test-metrics {
+        width: 100%;
+        margin-top: 20px;
+        padding: 0;
+      }
+
+      .arena-wrap {
+        padding: 9px;
+      }
+
+      .arena {
+        min-height: 420px;
+      }
+
+      .results-head {
+        display: block;
+      }
+
+      .confidence {
+        display: inline-block;
+        margin-top: 18px;
+      }
+
+      .settings-grid,
+      .scope-panel,
+      .advice-panel,
+      .method-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .scope-values {
+        grid-template-columns: repeat(3, 1fr);
+      }
+
+      footer {
+        display: block;
+        width: min(100% - 24px, 1440px);
+      }
+    }
+
+    @media (max-width: 470px) {
+      .brand span:last-child {
+        display: none;
+      }
+
+      h1 {
+        font-size: 52px;
+      }
+
+      .hero-copy {
+        font-size: 14px;
+      }
+
+      .segments {
+        grid-template-columns: 1fr;
+      }
+
+      .settings-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .scope-values {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="noise" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark">S/360</span>
+      <span>PUBG SENSITIVITY LAB</span>
+    </div>
+    <div class="top-meta">
+      <i class="status-dot" aria-hidden="true"></i>
+      <span>浏览器本地计算 · 不上传数据</span>
+      <span>PC · UPDATE 42.2 字段口径</span>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero" aria-labelledby="page-title">
+      <div>
+        <p class="eyebrow">Mouse calibration / Personal profile</p>
+        <h1 id="page-title">PUBG <span class="signal">灵敏度</span><br>调试助手</h1>
+        <p class="hero-copy">
+          用 <strong>3 项免点击鼠标测试</strong>，把你的追踪、定位与转身习惯换算成一套可直接填入
+          PUBG PC 的灵敏度。先填鼠标画像，再把准星移入测试环。
+        </p>
+      </div>
+
+      <aside class="hero-readout" aria-label="当前转身距离估算">
+        <span class="readout-label">CURRENT EST. / 当前设置的理论转身距离</span>
+        <div class="readout-value"><output id="hero-cm360">—</output><span>CM / 360°</span></div>
+        <div class="readout-scale" aria-hidden="true" id="cm-scale">
+          <i></i><i></i><i></i><i></i><i></i><i></i>
+          <i></i><i></i><i></i><i></i><i></i><i></i>
+        </div>
+        <div class="readout-foot">
+          <span id="speed-label">等待鼠标画像</span>
+          <span>社区公式估算</span>
+        </div>
+      </aside>
+    </section>
+
+    <section class="section" id="profile">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Step 01 / Input</p>
+          <h2>先告诉我你怎么用鼠标</h2>
+        </div>
+        <p>
+          DPI 与当前常规灵敏度用于计算 cm/360；控制方式、鼠标垫宽度和作战偏好决定推荐区间。
+          所有值都只保存在当前页面内。
+        </p>
+      </div>
+
+      <div class="profile-grid">
+        <div class="profile-card span-3">
+          <label class="field-label" for="dpi">
+            <span>鼠标 DPI</span><span class="field-index">01</span>
+          </label>
+          <div class="number-wrap">
+            <input id="dpi" type="number" min="100" max="32000" step="50" value="800" inputmode="numeric">
+            <span class="unit">DPI</span>
+          </div>
+          <p class="field-hint">请填写鼠标驱动内的实际 DPI，而不是 Windows 指针速度。</p>
+        </div>
+
+        <div class="profile-card span-3">
+          <label class="field-label" for="current-sens">
+            <span>当前常规灵敏度</span><span class="field-index">02</span>
+          </label>
+          <div class="number-wrap">
+            <input id="current-sens" type="number" min="1" max="100" step="1" value="38" inputmode="numeric">
+            <span class="unit">PUBG</span>
+          </div>
+          <p class="field-hint">填写游戏“设置 → 控制 → 常规灵敏度”的数值。</p>
+        </div>
+
+        <div class="profile-card span-3">
+          <label class="field-label" for="pad-width">
+            <span>可用鼠标垫宽度</span><span class="field-index">03</span>
+          </label>
+          <div class="number-wrap">
+            <input id="pad-width" type="number" min="18" max="100" step="1" value="45" inputmode="decimal">
+            <span class="unit">CM</span>
+          </div>
+          <p class="field-hint">只量你能自然横移的空间，不包含键盘占用区域。</p>
+        </div>
+
+        <div class="profile-card span-3">
+          <label class="field-label" for="fov">
+            <span>FPP 相机视野</span><span class="field-index">04</span>
+          </label>
+          <div class="number-wrap">
+            <input id="fov" type="number" min="80" max="103" step="1" value="103" inputmode="numeric">
+            <span class="unit">FOV</span>
+          </div>
+          <p class="field-hint">FPP 填游戏内实际 FOV；主要玩 TPP 时建议填 90。</p>
+        </div>
+
+        <div class="profile-card span-4">
+          <div class="field-label">
+            <span>鼠标控制方式</span><span class="field-index">05</span>
+          </div>
+          <div class="segments" role="radiogroup" aria-label="鼠标控制方式">
+            <input id="grip-wrist" name="grip" type="radio" value="wrist">
+            <label for="grip-wrist">手腕</label>
+            <input id="grip-mixed" name="grip" type="radio" value="mixed" checked>
+            <label for="grip-mixed">混合</label>
+            <input id="grip-arm" name="grip" type="radio" value="arm">
+            <label for="grip-arm">手臂</label>
+          </div>
+        </div>
+
+        <div class="profile-card span-4">
+          <div class="field-label">
+            <span>主要作战偏好</span><span class="field-index">06</span>
+          </div>
+          <div class="segments" role="radiogroup" aria-label="主要作战偏好">
+            <input id="style-control" name="style" type="radio" value="control">
+            <label for="style-control">压枪稳定</label>
+            <input id="style-balanced" name="style" type="radio" value="balanced" checked>
+            <label for="style-balanced">均衡全能</label>
+            <input id="style-speed" name="style" type="radio" value="speed">
+            <label for="style-speed">近战转身</label>
+          </div>
+        </div>
+
+        <div class="profile-card span-4">
+          <div class="field-label">
+            <span>你平时的下拉压枪动作</span><span class="field-index">07</span>
+          </div>
+          <div class="segments" role="radiogroup" aria-label="下拉压枪动作">
+            <input id="recoil-light" name="recoil" type="radio" value="light">
+            <label for="recoil-light">下拉偏小</label>
+            <input id="recoil-neutral" name="recoil" type="radio" value="neutral" checked>
+            <label for="recoil-neutral">自然适中</label>
+            <input id="recoil-heavy" name="recoil" type="radio" value="heavy">
+            <label for="recoil-heavy">下拉偏大</label>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="tests">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Step 02 / Aim tests</p>
+          <h2>把准星移进去，测试自动开始</h2>
+        </div>
+        <p>
+          不需要点击。鼠标进入测试区后会显示准星；碰到中央启动环即开始。10 秒计时按真实经过时间计算，
+          即使帧率波动也不会卡住。
+        </p>
+      </div>
+
+      <div class="test-stack">
+        <article class="test-card" id="tracking-card" data-state="idle">
+          <div class="test-info">
+            <span class="test-id">TEST 01 / 10 SEC</span>
+            <h3>追踪测试</h3>
+            <p>让准星持续贴住移动圆靶。系统累计真实悬停时间，并分别记录横向与纵向误差。</p>
+            <div class="test-metrics">
+              <div class="metric">
+                <span class="metric-label">追踪精准度</span>
+                <output class="metric-value" id="tracking-accuracy">—</output>
+              </div>
+              <div class="metric">
+                <span class="metric-label">锁定时间</span>
+                <output class="metric-value" id="tracking-lock">0.0s</output>
+              </div>
+            </div>
+          </div>
+          <div class="arena-wrap">
+            <div class="arena" id="tracking-arena" aria-label="追踪测试区域">
+              <div class="arena-hud">
+                <span class="arena-status"><i></i><span id="tracking-status">等待准星进入启动环</span></span>
+                <output class="timer" id="tracking-timer" aria-live="polite">10.0</output>
+              </div>
+              <div class="start-gate">
+                <span class="gate-copy"><b>HOVER</b>准星移入<br>立即开始</span>
+              </div>
+              <div class="tracking-target" id="tracking-target"></div>
+              <div class="completion-panel">
+                <small>TRACKING COMPLETE</small>
+                <strong id="tracking-complete-score">—</strong>
+                <span>右下角移入重测环可重新测试</span>
+              </div>
+              <div class="retest-gate">
+                <span class="gate-copy"><b>RETEST</b>移入重测</span>
+              </div>
+              <div class="crosshair" aria-hidden="true"><i class="crosshair-dot"></i></div>
+            </div>
+          </div>
+        </article>
+
+        <article class="test-card" id="flick-card" data-state="idle">
+          <div class="test-info">
+            <span class="test-id">TEST 02 / 10 SEC</span>
+            <h3>定位测试</h3>
+            <p>准星触碰随机方靶即算命中，无需点击。系统统计命中数、平均反应和移动路径效率。</p>
+            <div class="test-metrics">
+              <div class="metric">
+                <span class="metric-label">目标命中</span>
+                <output class="metric-value" id="flick-hits">0</output>
+              </div>
+              <div class="metric">
+                <span class="metric-label">平均反应</span>
+                <output class="metric-value" id="flick-reaction">—</output>
+              </div>
+            </div>
+          </div>
+          <div class="arena-wrap">
+            <div class="arena" id="flick-arena" aria-label="定位测试区域">
+              <div class="arena-hud">
+                <span class="arena-status"><i></i><span id="flick-status">等待准星进入启动环</span></span>
+                <output class="timer" id="flick-timer" aria-live="polite">10.0</output>
+              </div>
+              <div class="start-gate">
+                <span class="gate-copy"><b>HOVER</b>准星移入<br>立即开始</span>
+              </div>
+              <div class="flick-target" id="flick-target"></div>
+              <div class="completion-panel">
+                <small>FLICK COMPLETE</small>
+                <strong id="flick-complete-score">—</strong>
+                <span>命中 / 平均反应速度</span>
+              </div>
+              <div class="retest-gate">
+                <span class="gate-copy"><b>RETEST</b>移入重测</span>
+              </div>
+              <div class="crosshair" aria-hidden="true"><i class="crosshair-dot"></i></div>
+            </div>
+          </div>
+        </article>
+
+        <article class="test-card" id="turn-card" data-state="idle">
+          <div class="test-info">
+            <span class="test-id">TEST 03 / SWEEP</span>
+            <h3>360° 转身测试</h3>
+            <p>
+              触碰启动环后左右连续横扫，完成一圈。结果按 DPI 与当前 PUBG 灵敏度的非线性换算式计算，
+              横扫过程用于记录方向纯度。
+            </p>
+            <div class="test-metrics">
+              <div class="metric">
+                <span class="metric-label">理论 CM / 360°</span>
+                <output class="metric-value" id="turn-cm">—</output>
+              </div>
+              <div class="metric">
+                <span class="metric-label">横扫纯度</span>
+                <output class="metric-value" id="turn-purity">—</output>
+              </div>
+            </div>
+          </div>
+          <div class="arena-wrap">
+            <div class="arena" id="turn-arena" aria-label="360度转身标定区域">
+              <div class="arena-hud">
+                <span class="arena-status"><i></i><span id="turn-status">等待准星进入启动环</span></span>
+                <output class="timer" id="turn-readout" aria-live="polite">0°</output>
+              </div>
+              <div class="start-gate">
+                <span class="gate-copy"><b>SWEEP</b>移入后左右<br>连续横扫</span>
+              </div>
+              <div class="compass" id="turn-compass">
+                <i class="compass-tick"></i>
+                <span class="compass-label" id="turn-degrees">0°</span>
+              </div>
+              <div class="turn-hint">碰到屏幕边缘时反向继续 · 无需点击</div>
+              <div class="progress-rail"><div class="progress-fill" id="turn-progress"></div></div>
+              <div class="completion-panel">
+                <small>360 CALIBRATION COMPLETE</small>
+                <strong id="turn-complete-score">—</strong>
+                <span>理论 cm/360 · 建议进训练场复核一圈</span>
+              </div>
+              <div class="retest-gate">
+                <span class="gate-copy"><b>RETEST</b>移入重测</span>
+              </div>
+              <div class="crosshair" aria-hidden="true"><i class="crosshair-dot"></i></div>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" id="results">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Step 03 / Output</p>
+          <h2>你的 PUBG 专属参数</h2>
+        </div>
+        <p>
+          三项测试完成后自动生成。输出使用 PUBG PC 可直接输入的整数灵敏度；垂直灵敏度增强保留两位小数。
+        </p>
+      </div>
+
+      <div class="results-shell" id="results-shell">
+        <div class="results-empty">
+          <div>
+            <strong>完成 3 项测试后解锁</strong>
+            <span id="result-progress">目前已完成 0 / 3</span>
+          </div>
+        </div>
+
+        <div class="results-content">
+          <div class="results-head">
+            <div>
+              <h3>可直接填入游戏的推荐值</h3>
+              <p id="result-summary">—</p>
+            </div>
+            <span class="confidence" id="confidence">可信度 · —</span>
+          </div>
+
+          <div class="settings-grid">
+            <div class="setting-tile primary">
+              <span class="setting-name">常规灵敏度<br>General Sensitivity</span>
+              <output class="setting-value" id="out-general">—</output>
+            </div>
+            <div class="setting-tile">
+              <span class="setting-name">垂直灵敏度增强<br>Vertical Multiplier</span>
+              <output class="setting-value" id="out-vertical">—</output>
+            </div>
+            <div class="setting-tile">
+              <span class="setting-name">瞄准灵敏度<br>Aim Sensitivity</span>
+              <output class="setting-value" id="out-aim">—</output>
+            </div>
+            <div class="setting-tile">
+              <span class="setting-name">开镜模式灵敏度<br>ADS Sensitivity</span>
+              <output class="setting-value" id="out-ads">—</output>
+            </div>
+          </div>
+
+          <div class="scope-panel">
+            <div class="scope-summary">
+              <small>UNIVERSAL SCOPE SENSITIVITY</small>
+              <strong>建议禁用统一倍镜</strong>
+              <p>关闭“所有倍镜统一灵敏度”，再按右侧 2x—15x 分项填写。这样才能保留本次测试生成的渐进式微调。</p>
+            </div>
+            <div class="scope-values">
+              <div class="scope-item">2x<strong id="out-2x">—</strong></div>
+              <div class="scope-item">3x<strong id="out-3x">—</strong></div>
+              <div class="scope-item">4x<strong id="out-4x">—</strong></div>
+              <div class="scope-item">6x<strong id="out-6x">—</strong></div>
+              <div class="scope-item">8x<strong id="out-8x">—</strong></div>
+              <div class="scope-item">15x<strong id="out-15x">—</strong></div>
+            </div>
+          </div>
+
+          <div class="advice-panel">
+            <ol class="advice-list" id="advice-list"></ol>
+            <div class="copy-card">
+              <p>
+                复制后按“设置 → 控制 → 鼠标灵敏度”顺序填写。第一次进训练场只改一项，每次最多 ±1；
+                垂直增强每次最多 ±0.02。
+              </p>
+              <button class="copy-button" id="copy-button" type="button">复制全部参数</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="method">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Method / Boundaries</p>
+          <h2>数值口径与使用边界</h2>
+        </div>
+        <p>这是一套个人起点生成器，不是“无后坐力”脚本。枪械、配件、FOV 与拉枪节奏仍需在 PUBG 训练场复核。</p>
+      </div>
+      <div class="method-grid">
+        <div class="method-card">
+          <b>当前字段</b>
+          <p>
+            输出覆盖 PC 版常规、垂直增强、Aim、ADS，以及 2x / 3x / 4x / 6x / 8x / 15x。
+            灵敏度按整数 1—100 输出，垂直增强按 0.50—2.00 的游戏范围输出。
+          </p>
+        </div>
+        <div class="method-card">
+          <b>非线性换算</b>
+          <p>
+            PUBG 灵敏度并非线性刻度。本页采用社区长期使用的近似：
+            <code>yaw ≈ 0.00005555 × FOV × 10^(sens / 50)</code>，因此灵敏度增加约 15，速度约翻倍。
+          </p>
+        </div>
+        <div class="method-card">
+          <b>浏览器边界</b>
+          <p>
+            浏览器不能直接读取鼠标硬件 DPI，也看不到游戏内是否完成 360°。所以 cm/360 来自你填写的
+            DPI 与当前 PUBG 数值；横扫测试只评价动作方向纯度。最终请在训练场用尺复核。
+          </p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <span>PUBG SENSITIVITY LAB · 浏览器本地计算 · 无网络上传</span>
+    <span>版本口径：PUBG PC Update 42.2 · 生成结果为训练起点，不替代游戏内复核</span>
+  </footer>
+
+  <script>
+    "use strict";
+
+    const TEST_MS = 10000;
+    const $ = (selector, root = document) => root.querySelector(selector);
+    const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
+    const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+    const round = (value, digits = 0) => {
+      const factor = 10 ** digits;
+      return Math.round(value * factor) / factor;
+    };
+
+    const data = {
+      tracking: null,
+      flick: null,
+      turn: null
+    };
+
+    function numericValue(id, fallback, min, max) {
+      const value = Number($(id).value);
+      return clamp(Number.isFinite(value) ? value : fallback, min, max);
+    }
+
+    function checkedValue(name) {
+      return $(`input[name="${name}"]:checked`).value;
+    }
+
+    function config() {
+      return {
+        dpi: numericValue("#dpi", 800, 100, 32000),
+        currentSens: numericValue("#current-sens", 38, 1, 100),
+        padWidth: numericValue("#pad-width", 45, 18, 100),
+        fov: numericValue("#fov", 103, 80, 103),
+        grip: checkedValue("grip"),
+        style: checkedValue("style"),
+        recoil: checkedValue("recoil")
+      };
+    }
+
+    function pubgCm360(dpi, sensitivity, fov = 90) {
+      const degreesPerCount = 0.00005555 * fov * (10 ** (sensitivity / 50));
+      return (360 * 2.54) / (dpi * degreesPerCount);
+    }
+
+    function pubgSensitivityFromCm(dpi, cm360, fov = 90) {
+      return 50 * Math.log10((360 * 2.54) / (dpi * 0.00005555 * fov * cm360));
+    }
+
+    function updateHeroReadout() {
+      const current = config();
+      const cm = pubgCm360(current.dpi, current.currentSens, current.fov);
+      $("#hero-cm360").textContent = round(cm, 1).toFixed(1);
+
+      let label = "中速 / 混合控制区";
+      if (cm < 28) label = "高速 / 手腕转身区";
+      if (cm > 48) label = "低速 / 手臂精控区";
+      $("#speed-label").textContent = label;
+
+      const activeCount = Math.round(clamp((70 - cm) / 50, 0, 1) * 11) + 1;
+      $$("#cm-scale i").forEach((item, index) => {
+        item.classList.toggle("active", index < activeCount);
+      });
+
+      if (data.turn) {
+        data.turn.cm360 = cm;
+        $("#turn-cm").textContent = round(cm, 1).toFixed(1);
+        $("#turn-complete-score").textContent = `${round(cm, 1).toFixed(1)} CM`;
+      }
+      maybeGenerate();
+    }
+
+    function pointerPosition(event, arena) {
+      const rect = arena.getBoundingClientRect();
+      return {
+        x: clamp(event.clientX - rect.left, 0, rect.width),
+        y: clamp(event.clientY - rect.top, 0, rect.height),
+        width: rect.width,
+        height: rect.height
+      };
+    }
+
+    function updateCrosshair(arena, point) {
+      const crosshair = $(".crosshair", arena);
+      crosshair.style.setProperty("--x", `${point.x}px`);
+      crosshair.style.setProperty("--y", `${point.y}px`);
+    }
+
+    function withinGate(point, element, arena) {
+      const arenaRect = arena.getBoundingClientRect();
+      const rect = element.getBoundingClientRect();
+      const centerX = rect.left - arenaRect.left + rect.width / 2;
+      const centerY = rect.top - arenaRect.top + rect.height / 2;
+      return Math.hypot(point.x - centerX, point.y - centerY) <= rect.width * 0.48;
+    }
+
+    function setTestState(card, state, statusElement, statusText) {
+      card.dataset.state = state;
+      statusElement.textContent = statusText;
+    }
+
+    function updateResultProgress() {
+      const completed = Object.values(data).filter(Boolean).length;
+      $("#result-progress").textContent = `目前已完成 ${completed} / 3`;
+      maybeGenerate();
+    }
+
+    // TEST 01: tracking
+    (() => {
+      const card = $("#tracking-card");
+      const arena = $("#tracking-arena");
+      const target = $("#tracking-target");
+      const startGate = $(".start-gate", arena);
+      const retestGate = $(".retest-gate", arena);
+      const status = $("#tracking-status");
+      const timer = $("#tracking-timer");
+      const state = {
+        running: false,
+        pointer: { x: 0, y: 0, width: 0, height: 0 },
+        startedAt: 0,
+        lastAt: 0,
+        hoverMs: 0,
+        errorX: 0,
+        errorY: 0,
+        samples: 0,
+        pointerInside: false,
+        frame: 0
+      };
+
+      function reset() {
+        cancelAnimationFrame(state.frame);
+        state.running = false;
+        data.tracking = null;
+        state.hoverMs = 0;
+        state.errorX = 0;
+        state.errorY = 0;
+        state.samples = 0;
+        target.classList.remove("locked");
+        target.style.removeProperty("left");
+        target.style.removeProperty("top");
+        timer.textContent = "10.0";
+        $("#tracking-accuracy").textContent = "—";
+        $("#tracking-lock").textContent = "0.0s";
+        setTestState(card, "idle", status, "等待准星进入启动环");
+        updateResultProgress();
+      }
+
+      function targetPoint(elapsed, width, height) {
+        const t = elapsed / 1000;
+        const margin = 58;
+        const usableW = Math.max(120, width - margin * 2);
+        const usableH = Math.max(120, height - margin * 2);
+        const x = width / 2
+          + Math.sin(t * 1.72) * usableW * .34
+          + Math.sin(t * 3.91 + .7) * usableW * .08;
+        const y = height / 2
+          + Math.cos(t * 1.31 + .25) * usableH * .29
+          + Math.sin(t * 2.77) * usableH * .11;
+        return {
+          x: clamp(x, margin, width - margin),
+          y: clamp(y, margin, height - margin)
+        };
+      }
+
+      function finish() {
+        state.running = false;
+        timer.textContent = "0.0";
+        const accuracy = clamp((state.hoverMs / TEST_MS) * 100, 0, 100);
+        const averageXError = state.samples ? state.errorX / state.samples : 0;
+        const averageYError = state.samples ? state.errorY / state.samples : 0;
+        data.tracking = {
+          accuracy,
+          lockMs: state.hoverMs,
+          averageXError,
+          averageYError
+        };
+        $("#tracking-accuracy").textContent = `${round(accuracy)}%`;
+        $("#tracking-lock").textContent = `${(state.hoverMs / 1000).toFixed(1)}s`;
+        $("#tracking-complete-score").textContent = `${round(accuracy)}%`;
+        setTestState(card, "complete", status, "测试完成");
+        updateResultProgress();
+      }
+
+      function animate(now) {
+        if (!state.running) return;
+        const elapsed = now - state.startedAt;
+        const delta = Math.min(now - state.lastAt, 50);
+        state.lastAt = now;
+        const rect = arena.getBoundingClientRect();
+        const point = targetPoint(elapsed, rect.width, rect.height);
+        target.style.left = `${point.x}px`;
+        target.style.top = `${point.y}px`;
+
+        const dx = state.pointer.x - point.x;
+        const dy = state.pointer.y - point.y;
+        const locked = state.pointerInside && Math.hypot(dx, dy) <= 29;
+        target.classList.toggle("locked", locked);
+        if (locked) state.hoverMs += delta;
+        state.errorX += Math.abs(dx);
+        state.errorY += Math.abs(dy);
+        state.samples += 1;
+
+        const remaining = Math.max(0, TEST_MS - elapsed);
+        timer.textContent = (remaining / 1000).toFixed(1);
+        $("#tracking-accuracy").textContent = `${round((state.hoverMs / Math.max(1, elapsed)) * 100)}%`;
+        $("#tracking-lock").textContent = `${(state.hoverMs / 1000).toFixed(1)}s`;
+
+        if (elapsed >= TEST_MS) {
+          finish();
+          return;
+        }
+        state.frame = requestAnimationFrame(animate);
+      }
+
+      function start() {
+        if (state.running) return;
+        state.running = true;
+        state.hoverMs = 0;
+        state.errorX = 0;
+        state.errorY = 0;
+        state.samples = 0;
+        state.startedAt = performance.now();
+        state.lastAt = state.startedAt;
+        setTestState(card, "running", status, "追踪采样中");
+        state.frame = requestAnimationFrame(animate);
+      }
+
+      arena.addEventListener("pointerenter", () => {
+        state.pointerInside = true;
+        arena.classList.add("pointer-inside");
+      });
+      arena.addEventListener("pointerleave", () => {
+        state.pointerInside = false;
+        target.classList.remove("locked");
+        arena.classList.remove("pointer-inside");
+      });
+      arena.addEventListener("pointermove", (event) => {
+        const point = pointerPosition(event, arena);
+        state.pointer = point;
+        updateCrosshair(arena, point);
+        if (card.dataset.state === "idle" && withinGate(point, startGate, arena)) start();
+        if (card.dataset.state === "complete" && withinGate(point, retestGate, arena)) reset();
+      });
+    })();
+
+    // TEST 02: flick / target acquisition
+    (() => {
+      const card = $("#flick-card");
+      const arena = $("#flick-arena");
+      const target = $("#flick-target");
+      const startGate = $(".start-gate", arena);
+      const retestGate = $(".retest-gate", arena);
+      const status = $("#flick-status");
+      const timer = $("#flick-timer");
+      const state = {
+        running: false,
+        pointer: { x: 0, y: 0, width: 0, height: 0 },
+        previousPointer: null,
+        startedAt: 0,
+        targetAt: 0,
+        targetPoint: { x: 0, y: 0 },
+        straightDistance: 0,
+        pathDistance: 0,
+        hits: 0,
+        reactions: [],
+        efficiencies: [],
+        frame: 0
+      };
+
+      function reset() {
+        cancelAnimationFrame(state.frame);
+        state.running = false;
+        data.flick = null;
+        state.hits = 0;
+        state.reactions = [];
+        state.efficiencies = [];
+        target.style.removeProperty("left");
+        target.style.removeProperty("top");
+        timer.textContent = "10.0";
+        $("#flick-hits").textContent = "0";
+        $("#flick-reaction").textContent = "—";
+        setTestState(card, "idle", status, "等待准星进入启动环");
+        updateResultProgress();
+      }
+
+      function spawnTarget(now) {
+        const rect = arena.getBoundingClientRect();
+        const margin = 62;
+        let candidate = { x: rect.width / 2, y: rect.height / 2 };
+        for (let attempt = 0; attempt < 20; attempt += 1) {
+          candidate = {
+            x: margin + Math.random() * Math.max(80, rect.width - margin * 2),
+            y: margin + Math.random() * Math.max(80, rect.height - margin * 2)
+          };
+          if (Math.hypot(candidate.x - state.pointer.x, candidate.y - state.pointer.y) > Math.min(210, rect.width * .26)) {
+            break;
+          }
+        }
+        state.targetPoint = candidate;
+        state.targetAt = now;
+        state.straightDistance = Math.hypot(candidate.x - state.pointer.x, candidate.y - state.pointer.y);
+        state.pathDistance = 0;
+        state.previousPointer = { x: state.pointer.x, y: state.pointer.y };
+        target.style.left = `${candidate.x}px`;
+        target.style.top = `${candidate.y}px`;
+      }
+
+      function hit(now) {
+        const reaction = now - state.targetAt;
+        state.hits += 1;
+        state.reactions.push(reaction);
+        const efficiency = state.straightDistance / Math.max(state.straightDistance, state.pathDistance);
+        state.efficiencies.push(clamp(efficiency, 0, 1));
+        $("#flick-hits").textContent = String(state.hits);
+        $("#flick-reaction").textContent = `${round(state.reactions.reduce((a, b) => a + b, 0) / state.reactions.length)}ms`;
+
+        const burst = document.createElement("i");
+        burst.className = "hit-burst";
+        burst.style.left = `${state.targetPoint.x}px`;
+        burst.style.top = `${state.targetPoint.y}px`;
+        arena.appendChild(burst);
+        setTimeout(() => burst.remove(), 420);
+        spawnTarget(now);
+      }
+
+      function finish() {
+        state.running = false;
+        timer.textContent = "0.0";
+        const averageReaction = state.reactions.length
+          ? state.reactions.reduce((a, b) => a + b, 0) / state.reactions.length
+          : TEST_MS;
+        const pathEfficiency = state.efficiencies.length
+          ? state.efficiencies.reduce((a, b) => a + b, 0) / state.efficiencies.length
+          : 0;
+        data.flick = {
+          hits: state.hits,
+          averageReaction,
+          pathEfficiency
+        };
+        $("#flick-hits").textContent = String(state.hits);
+        $("#flick-reaction").textContent = state.hits ? `${round(averageReaction)}ms` : "—";
+        $("#flick-complete-score").textContent = `${state.hits} / ${state.hits ? round(averageReaction) : "—"}ms`;
+        setTestState(card, "complete", status, "测试完成");
+        updateResultProgress();
+      }
+
+      function animate(now) {
+        if (!state.running) return;
+        const elapsed = now - state.startedAt;
+        timer.textContent = (Math.max(0, TEST_MS - elapsed) / 1000).toFixed(1);
+        if (elapsed >= TEST_MS) {
+          finish();
+          return;
+        }
+        state.frame = requestAnimationFrame(animate);
+      }
+
+      function start() {
+        if (state.running) return;
+        state.running = true;
+        state.hits = 0;
+        state.reactions = [];
+        state.efficiencies = [];
+        state.startedAt = performance.now();
+        $("#flick-hits").textContent = "0";
+        $("#flick-reaction").textContent = "—";
+        setTestState(card, "running", status, "随机目标生成中");
+        spawnTarget(state.startedAt);
+        state.frame = requestAnimationFrame(animate);
+      }
+
+      arena.addEventListener("pointerenter", () => arena.classList.add("pointer-inside"));
+      arena.addEventListener("pointerleave", () => arena.classList.remove("pointer-inside"));
+      arena.addEventListener("pointermove", (event) => {
+        const point = pointerPosition(event, arena);
+        state.pointer = point;
+        updateCrosshair(arena, point);
+
+        if (state.running && state.previousPointer) {
+          state.pathDistance += Math.hypot(
+            point.x - state.previousPointer.x,
+            point.y - state.previousPointer.y
+          );
+          state.previousPointer = { x: point.x, y: point.y };
+          if (
+            performance.now() - state.targetAt > 80
+            && Math.hypot(point.x - state.targetPoint.x, point.y - state.targetPoint.y) <= 31
+          ) {
+            hit(performance.now());
+          }
+        }
+
+        if (card.dataset.state === "idle" && withinGate(point, startGate, arena)) start();
+        if (card.dataset.state === "complete" && withinGate(point, retestGate, arena)) reset();
+      });
+    })();
+
+    // TEST 03: 360-degree sweep
+    (() => {
+      const card = $("#turn-card");
+      const arena = $("#turn-arena");
+      const startGate = $(".start-gate", arena);
+      const retestGate = $(".retest-gate", arena);
+      const status = $("#turn-status");
+      const compass = $("#turn-compass");
+      const progressBar = $("#turn-progress");
+      const state = {
+        running: false,
+        pointer: { x: 0, y: 0, width: 0, height: 0 },
+        previousPointer: null,
+        horizontal: 0,
+        total: 0,
+        required: 1
+      };
+
+      function reset() {
+        state.running = false;
+        data.turn = null;
+        state.previousPointer = null;
+        state.horizontal = 0;
+        state.total = 0;
+        progressBar.style.width = "0%";
+        compass.style.setProperty("--turn", "0deg");
+        $("#turn-degrees").textContent = "0°";
+        $("#turn-readout").textContent = "0°";
+        $("#turn-cm").textContent = "—";
+        $("#turn-purity").textContent = "—";
+        setTestState(card, "idle", status, "等待准星进入启动环");
+        updateResultProgress();
+      }
+
+      function finish() {
+        state.running = false;
+        const current = config();
+        const cm360 = pubgCm360(current.dpi, current.currentSens, current.fov);
+        const purity = clamp((state.horizontal / Math.max(1, state.total)) * 100, 0, 100);
+        data.turn = { cm360, purity };
+        $("#turn-cm").textContent = round(cm360, 1).toFixed(1);
+        $("#turn-purity").textContent = `${round(purity)}%`;
+        $("#turn-complete-score").textContent = `${round(cm360, 1).toFixed(1)} CM`;
+        $("#turn-degrees").textContent = "360°";
+        $("#turn-readout").textContent = "360°";
+        setTestState(card, "complete", status, "标定完成");
+        updateResultProgress();
+      }
+
+      function start() {
+        if (state.running) return;
+        const current = config();
+        const currentCm = pubgCm360(current.dpi, current.currentSens, current.fov);
+        const rect = arena.getBoundingClientRect();
+        const virtualSweeps = clamp(currentCm / Math.max(18, current.padWidth * .72), 1.15, 3.8);
+        state.required = rect.width * virtualSweeps;
+        state.running = true;
+        state.horizontal = 0;
+        state.total = 0;
+        state.previousPointer = { x: state.pointer.x, y: state.pointer.y };
+        setTestState(card, "running", status, "左右横扫中");
+      }
+
+      arena.addEventListener("pointerenter", () => arena.classList.add("pointer-inside"));
+      arena.addEventListener("pointerleave", () => {
+        arena.classList.remove("pointer-inside");
+        state.previousPointer = null;
+      });
+      arena.addEventListener("pointermove", (event) => {
+        const point = pointerPosition(event, arena);
+        state.pointer = point;
+        updateCrosshair(arena, point);
+
+        if (state.running) {
+          if (state.previousPointer) {
+            const dx = point.x - state.previousPointer.x;
+            const dy = point.y - state.previousPointer.y;
+            const distance = Math.hypot(dx, dy);
+            state.total += distance;
+            if (Math.abs(dx) >= Math.abs(dy) * .55) {
+              state.horizontal += Math.abs(dx);
+            }
+            const progress = clamp(state.horizontal / state.required, 0, 1);
+            const degrees = Math.round(progress * 360);
+            progressBar.style.width = `${progress * 100}%`;
+            compass.style.setProperty("--turn", `${degrees}deg`);
+            $("#turn-degrees").textContent = `${degrees}°`;
+            $("#turn-readout").textContent = `${degrees}°`;
+            $("#turn-purity").textContent = `${round((state.horizontal / Math.max(1, state.total)) * 100)}%`;
+            if (progress >= 1) finish();
+          }
+          state.previousPointer = { x: point.x, y: point.y };
+        }
+
+        if (card.dataset.state === "idle" && withinGate(point, startGate, arena)) start();
+        if (card.dataset.state === "complete" && withinGate(point, retestGate, arena)) reset();
+      });
+    })();
+
+    function generatedSettings() {
+      const current = config();
+      const tracking = data.tracking;
+      const flick = data.flick;
+      const turn = data.turn;
+
+      const baseByGrip = { wrist: 30, mixed: 40, arm: 50 };
+      const styleAdjust = { control: 5, balanced: 0, speed: -5 };
+      let desiredCm = baseByGrip[current.grip] + styleAdjust[current.style];
+
+      if (tracking.accuracy < 58) desiredCm *= 1.09;
+      else if (tracking.accuracy > 82) desiredCm *= .97;
+
+      if (flick.pathEfficiency < .62) desiredCm *= 1.08;
+      else if (flick.averageReaction > 720 && flick.pathEfficiency > .76) desiredCm *= .94;
+
+      if (flick.hits >= 18 && flick.pathEfficiency >= .72) desiredCm *= .98;
+      if (turn.purity < 72) desiredCm *= 1.03;
+
+      desiredCm = desiredCm * .76 + turn.cm360 * .24;
+      desiredCm = Math.min(desiredCm, current.padWidth * 1.22);
+
+      const bounds = {
+        wrist: [23, 39],
+        mixed: [29, 51],
+        arm: [37, 64]
+      }[current.grip];
+      desiredCm = clamp(desiredCm, bounds[0], bounds[1]);
+
+      const general = Math.round(clamp(pubgSensitivityFromCm(current.dpi, desiredCm, current.fov), 1, 100));
+      const acquisitionBonus = flick.averageReaction < 480 && flick.pathEfficiency > .72 ? 1 : 0;
+      const aim = Math.round(clamp(general + acquisitionBonus - (flick.pathEfficiency < .58 ? 2 : 0), 1, 100));
+
+      let adsDrop = 1;
+      if (tracking.accuracy < 72) adsDrop += 1;
+      if (flick.pathEfficiency < .65) adsDrop += 1;
+      if (current.style === "control") adsDrop += 1;
+      if (current.style === "speed") adsDrop = Math.max(0, adsDrop - 1);
+      const ads = Math.round(clamp(general - adsDrop, 1, 100));
+
+      const recoilBase = { light: 1.08, neutral: 1.00, heavy: .94 };
+      const errorRatio = tracking.averageXError > 0
+        ? tracking.averageYError / tracking.averageXError
+        : 1;
+      let vertical = recoilBase[current.recoil];
+      if (errorRatio > 1.12) vertical += .04;
+      if (errorRatio < .88) vertical -= .03;
+      if (turn.purity < 70) vertical -= .02;
+      vertical = round(clamp(vertical, .80, 1.22), 2);
+
+      const taper = tracking.accuracy < 62 ? 2 : 1;
+      const scope2 = Math.round(clamp(ads, 1, 100));
+      const scope3 = Math.round(clamp(ads - taper, 1, 100));
+      const scope4 = Math.round(clamp(ads - taper, 1, 100));
+      const scope6 = Math.round(clamp(ads - taper - 1, 1, 100));
+      const scope8 = Math.round(clamp(ads - taper - 2, 1, 100));
+      const scope15 = Math.round(clamp(ads - taper - 3, 1, 100));
+
+      return {
+        desiredCm,
+        general,
+        vertical,
+        aim,
+        ads,
+        scopes: {
+          "2x": scope2,
+          "3x": scope3,
+          "4x": scope4,
+          "6x": scope6,
+          "8x": scope8,
+          "15x": scope15
+        }
+      };
+    }
+
+    function buildAdvice(settings) {
+      const advice = [];
+      if (data.tracking.accuracy < 68) {
+        advice.push(`追踪精准度为 ${round(data.tracking.accuracy)}%。先用推荐 ADS ${settings.ads} 连续追车靶；若准星仍频繁越过目标，只把 ADS 与 2x 各减 1。`);
+      } else {
+        advice.push(`追踪精准度达到 ${round(data.tracking.accuracy)}%。先保持 ADS ${settings.ads} 不变；若贴不住横向跑动目标，再只加 1。`);
+      }
+
+      if (data.flick.pathEfficiency < .65) {
+        advice.push(`定位路径效率为 ${round(data.flick.pathEfficiency * 100)}%，存在绕行或过冲。常规灵敏度先不要上调；用同一数值完成 3 轮定位测试后再判断。`);
+      } else if (data.flick.averageReaction > 650) {
+        advice.push(`平均定位反应 ${round(data.flick.averageReaction)} ms，路径较直但启动偏慢。近战若总是差半拍，可把“瞄准灵敏度”从 ${settings.aim} 微调到 ${settings.aim + 1}。`);
+      } else {
+        advice.push(`平均定位反应 ${round(data.flick.averageReaction)} ms，路径效率 ${round(data.flick.pathEfficiency * 100)}%。当前速度与精度平衡良好，不建议追求更高数值。`);
+      }
+
+      const current = config();
+      if (current.recoil === "light") {
+        advice.push(`你选择了“下拉偏小”，所以垂直增强给到 ${settings.vertical.toFixed(2)}。若 30 发弹道持续上飘，每次加 0.02；若总压到脚下，每次减 0.02。`);
+      } else if (current.recoil === "heavy") {
+        advice.push(`你选择了“下拉偏大”，所以垂直增强收在 ${settings.vertical.toFixed(2)}。若总压到目标下方，每次减 0.02，不要同时改 ADS。`);
+      } else {
+        advice.push(`垂直增强从 ${settings.vertical.toFixed(2)} 起步。训练场用同一把枪、同一配件测试 3 组 30 发，只按弹着点整体上/下偏移做 ±0.02 微调。`);
+      }
+
+      advice.push(`推荐目标约 ${round(settings.desiredCm, 1).toFixed(1)} cm/360。进训练场对准固定物完整转一圈，用尺复核；误差超过 3 cm 时只调整“常规灵敏度”1 格后重测。`);
+      return advice;
+    }
+
+    function maybeGenerate() {
+      const completed = Object.values(data).filter(Boolean).length;
+      if (completed !== 3) {
+        $("#results-shell").classList.remove("ready");
+        return;
+      }
+
+      const settings = generatedSettings();
+      $("#out-general").textContent = settings.general;
+      $("#out-vertical").textContent = settings.vertical.toFixed(2);
+      $("#out-aim").textContent = settings.aim;
+      $("#out-ads").textContent = settings.ads;
+      Object.entries(settings.scopes).forEach(([scope, value]) => {
+        $(`#out-${scope}`).textContent = value;
+      });
+
+      const current = config();
+      const change = settings.desiredCm - data.turn.cm360;
+      const direction = Math.abs(change) < 1.5
+        ? "基本保留你当前的转身节奏"
+        : change > 0
+          ? "略降速度以换取更稳的跟枪与远点控制"
+          : "略提速度以缩短近战转身和首次定位时间";
+      $("#result-summary").textContent =
+        `${current.dpi} DPI 下，推荐落点约 ${round(settings.desiredCm, 1).toFixed(1)} cm/360；${direction}。`
+        + " 倍镜采用小幅渐降，不使用激进的倍率除法。";
+
+      const confidence = data.flick.hits >= 8 && data.tracking.accuracy >= 25 ? "高" : "中";
+      $("#confidence").textContent = `可信度 · ${confidence}`;
+
+      const advice = buildAdvice(settings);
+      $("#advice-list").innerHTML = advice
+        .map((item, index) => `<li><b>${String(index + 1).padStart(2, "0")}</b><span>${item}</span></li>`)
+        .join("");
+
+      $("#results-shell").classList.add("ready");
+      $("#results-shell").dataset.settings = JSON.stringify(settings);
+    }
+
+    function settingsText() {
+      const settings = JSON.parse($("#results-shell").dataset.settings || "{}");
+      if (!settings.scopes) return "";
+      return [
+        "PUBG PC 灵敏度推荐",
+        `常规灵敏度：${settings.general}`,
+        `垂直灵敏度增强：${settings.vertical.toFixed(2)}`,
+        `瞄准灵敏度：${settings.aim}`,
+        `开镜模式灵敏度（ADS）：${settings.ads}`,
+        "所有倍镜统一灵敏度：禁用",
+        `2倍镜：${settings.scopes["2x"]}`,
+        `3倍镜：${settings.scopes["3x"]}`,
+        `4倍镜：${settings.scopes["4x"]}`,
+        `6倍镜：${settings.scopes["6x"]}`,
+        `8倍镜：${settings.scopes["8x"]}`,
+        `15倍镜：${settings.scopes["15x"]}`,
+        `目标 cm/360：${round(settings.desiredCm, 1).toFixed(1)}`
+      ].join("\n");
+    }
+
+    $("#copy-button").addEventListener("click", async () => {
+      const button = $("#copy-button");
+      const original = button.textContent;
+      try {
+        await navigator.clipboard.writeText(settingsText());
+        button.textContent = "已复制到剪贴板";
+      } catch {
+        const area = document.createElement("textarea");
+        area.value = settingsText();
+        document.body.appendChild(area);
+        area.select();
+        document.execCommand("copy");
+        area.remove();
+        button.textContent = "已复制到剪贴板";
+      }
+      setTimeout(() => {
+        button.textContent = original;
+      }, 1800);
+    });
+
+    ["#dpi", "#current-sens", "#pad-width", "#fov"].forEach((selector) => {
+      $(selector).addEventListener("input", updateHeroReadout);
+      $(selector).addEventListener("change", updateHeroReadout);
+    });
+
+    $$('input[type="radio"]').forEach((radio) => {
+      radio.addEventListener("change", maybeGenerate);
+    });
+
+    updateHeroReadout();
+
+    // Minimal inspection surface for local browser verification.
+    window.__PUBG_SENS_LAB__ = {
+      version: "42.2",
+      pubgCm360,
+      pubgSensitivityFromCm,
+      get data() { return structuredClone(data); }
+    };
+  </script>
+</body>
+</html>
