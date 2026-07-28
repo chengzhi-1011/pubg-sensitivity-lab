@@ -1031,6 +1031,101 @@
       letter-spacing: .08em;
     }
 
+    .feasibility-card {
+      display: grid;
+      grid-template-columns: minmax(0, 1.35fr) minmax(360px, .9fr);
+      gap: 24px;
+      align-items: center;
+      margin: -10px 0 24px;
+      padding: 18px 20px;
+      border: 1px solid rgba(142, 214, 187, .28);
+      border-radius: 17px;
+      background:
+        linear-gradient(105deg, rgba(142, 214, 187, .11), rgba(142, 214, 187, .025)),
+        rgba(255, 255, 255, .025);
+    }
+
+    .feasibility-copy small {
+      display: block;
+      margin-bottom: 7px;
+      color: var(--mint);
+      font-size: 9px;
+      font-weight: 900;
+      letter-spacing: .13em;
+    }
+
+    .feasibility-copy strong {
+      display: block;
+      color: #fff;
+      font-family: var(--display);
+      font-size: 21px;
+      font-weight: 900;
+      line-height: 1.1;
+    }
+
+    .feasibility-copy p {
+      margin: 8px 0 0;
+      color: rgba(255, 255, 255, .62);
+      font-size: 11px;
+      line-height: 1.65;
+    }
+
+    .feasibility-stats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 7px;
+    }
+
+    .feasibility-stats span {
+      min-width: 0;
+      padding: 11px 10px;
+      border: 1px solid rgba(255, 255, 255, .1);
+      border-radius: 11px;
+      background: rgba(0, 0, 0, .12);
+    }
+
+    .feasibility-stats small,
+    .feasibility-stats b {
+      display: block;
+    }
+
+    .feasibility-stats small {
+      overflow: hidden;
+      color: rgba(255, 255, 255, .46);
+      font-size: 8px;
+      letter-spacing: .03em;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .feasibility-stats b {
+      margin-top: 6px;
+      overflow-wrap: anywhere;
+      color: #fff;
+      font-family: var(--display);
+      font-size: 17px;
+      font-weight: 900;
+    }
+
+    .feasibility-card[data-status="dpi-limited"] {
+      border-color: rgba(244, 182, 41, .48);
+      background:
+        linear-gradient(105deg, rgba(244, 182, 41, .17), rgba(244, 182, 41, .025)),
+        rgba(255, 255, 255, .025);
+    }
+
+    .feasibility-card[data-status="dpi-limited"] .feasibility-copy small,
+    .feasibility-card[data-status="dpi-limited"] .feasibility-stats b {
+      color: var(--signal);
+    }
+
+    .feasibility-card[data-status="pad-limited"] {
+      border-color: rgba(238, 225, 164, .36);
+      background:
+        linear-gradient(105deg, rgba(238, 225, 164, .12), rgba(238, 225, 164, .02)),
+        rgba(255, 255, 255, .025);
+    }
+
     .settings-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
@@ -1217,7 +1312,7 @@
 
     .method-grid {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(2, 1fr);
       gap: 14px;
     }
 
@@ -1392,6 +1487,11 @@
         margin-top: 18px;
       }
 
+      .feasibility-card {
+        grid-template-columns: 1fr;
+        margin-top: -4px;
+      }
+
       .settings-grid,
       .scope-panel,
       .advice-panel,
@@ -1427,6 +1527,10 @@
       }
 
       .settings-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .feasibility-stats {
         grid-template-columns: 1fr;
       }
 
@@ -1482,7 +1586,7 @@
         </div>
         <div class="readout-foot">
           <span id="speed-label">等待鼠标画像</span>
-          <span>社区公式估算</span>
+          <span id="dpi-range-label">社区公式估算</span>
         </div>
       </aside>
     </section>
@@ -1735,7 +1839,7 @@
           <h2>你的 PUBG 专属参数</h2>
         </div>
         <p>
-          三项测试完成后自动生成。输出使用 PUBG PC 可直接输入的整数灵敏度；垂直灵敏度增强保留两位小数。
+          三项测试完成后自动生成。输出使用 PUBG PC 可直接输入的数值，并校验当前 DPI 能否真正实现目标转身距离。
         </p>
       </div>
 
@@ -1750,10 +1854,32 @@
         <div class="results-content">
           <div class="results-head">
             <div>
-              <h3>可直接填入游戏的推荐值</h3>
+              <h3 id="result-title">可直接填入游戏的推荐值</h3>
               <p id="result-summary">—</p>
             </div>
             <span class="confidence" id="confidence">可信度 · —</span>
+          </div>
+
+          <div class="feasibility-card" id="feasibility-card" data-status="ok">
+            <div class="feasibility-copy">
+              <small>DPI FEASIBILITY / 游戏刻度可实现性</small>
+              <strong id="feasibility-title">正在校验当前 DPI</strong>
+              <p id="feasibility-copy">将目标 cm/360 反算成 PUBG 可填写整数，并检查 1—100 刻度边界。</p>
+            </div>
+            <div class="feasibility-stats">
+              <span>
+                <small>理想目标</small>
+                <b id="out-desired-cm">—</b>
+              </span>
+              <span>
+                <small>当前 DPI 实际</small>
+                <b id="out-actual-cm">—</b>
+              </span>
+              <span>
+                <small>兼容方案</small>
+                <b id="out-compatible-solution">—</b>
+              </span>
+            </div>
           </div>
 
           <div class="settings-grid">
@@ -1815,6 +1941,13 @@
       </div>
       <div class="method-grid">
         <div class="method-card">
+          <b>推荐逻辑</b>
+          <p>
+            先按手腕 / 混合 / 手臂建立约 30 / 40 / 50 cm/360 起点，作战偏好再做 ±5 cm 调整；
+            与你当前手感按 65% / 35% 融合。三项屏幕测试只做最高 ±6% 微调，再受鼠标垫宽度约束，最后反算并校验游戏 1—100 刻度。
+          </p>
+        </div>
+        <div class="method-card">
           <b>当前字段</b>
           <p>
             输出覆盖 PC 版常规、垂直增强、Aim、ADS，以及 2x / 3x / 4x / 6x / 8x / 15x。
@@ -1831,8 +1964,8 @@
         <div class="method-card">
           <b>浏览器边界</b>
           <p>
-            浏览器不能直接读取鼠标硬件 DPI，也看不到游戏内是否完成 360°。所以 cm/360 来自你填写的
-            DPI 与当前 PUBG 数值；横扫测试只评价动作方向纯度。最终请在训练场用尺复核。
+            免点击测试读取的是屏幕光标与 CSS 像素，不是 PUBG 原始鼠标输入；系统缩放、指针速度与加速都会影响结果。
+            因此三项测试只做最高 ±6% 的相对微调，cm/360 仍由你填写的 DPI 与 PUBG 数值估算，最终请在训练场用尺复核。
           </p>
         </div>
       </div>
@@ -1847,14 +1980,205 @@
   <script>
     "use strict";
 
+    // SENSITIVITY_CORE_START
+    const SENSITIVITY_CORE = (() => {
+      const MIN_SENSITIVITY = 1;
+      const MAX_SENSITIVITY = 100;
+      const STANDARD_DPIS = [400, 800, 1600, 3200, 6400, 12800, 32000];
+      const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+      const round = (value, digits = 0) => {
+        const factor = 10 ** digits;
+        return Math.round(value * factor) / factor;
+      };
+
+      function pubgCm360(dpi, sensitivity, fov = 90) {
+        const degreesPerCount = 0.00005555 * fov * (10 ** (sensitivity / 50));
+        return (360 * 2.54) / (dpi * degreesPerCount);
+      }
+
+      function pubgSensitivityFromCm(dpi, cm360, fov = 90) {
+        return 50 * Math.log10((360 * 2.54) / (dpi * 0.00005555 * fov * cm360));
+      }
+
+      function solveSensitivity(dpi, targetCm, fov = 90) {
+        const rawSensitivity = pubgSensitivityFromCm(dpi, targetCm, fov);
+        const rangeStatus = rawSensitivity < MIN_SENSITIVITY
+          ? "below-min"
+          : rawSensitivity > MAX_SENSITIVITY
+            ? "above-max"
+            : "within";
+        const gameSensitivity = Math.round(
+          clamp(rawSensitivity, MIN_SENSITIVITY, MAX_SENSITIVITY)
+        );
+        const actualCm = pubgCm360(dpi, gameSensitivity, fov);
+        const errorPct = ((actualCm - targetCm) / targetCm) * 100;
+
+        return {
+          rawSensitivity,
+          gameSensitivity,
+          actualCm,
+          errorPct,
+          feasible: rangeStatus === "within",
+          rangeStatus
+        };
+      }
+
+      function maxDpiForCm(targetCm, fov = 90) {
+        return (360 * 2.54)
+          / (targetCm * 0.00005555 * fov * (10 ** (MIN_SENSITIVITY / 50)));
+      }
+
+      function compatibleDpiFor(targetCm, fov = 90) {
+        const ceiling = maxDpiForCm(targetCm, fov);
+        const standard = STANDARD_DPIS.filter((dpi) => dpi <= ceiling).at(-1);
+        if (standard) return standard;
+        return Math.max(100, Math.floor(ceiling / 50) * 50);
+      }
+
+      function browserTestFactor(tracking, flick, turn) {
+        let adjustment = 0;
+
+        if (tracking.accuracy < 55) adjustment += .025;
+        else if (tracking.accuracy > 85) adjustment -= .02;
+
+        if (flick.pathEfficiency < .60) adjustment += .025;
+        else if (flick.pathEfficiency > .82) adjustment -= .02;
+
+        if (flick.averageReaction > 760 && flick.pathEfficiency > .72) adjustment -= .01;
+        if (flick.hits >= 18 && flick.pathEfficiency >= .72) adjustment -= .01;
+
+        if (turn.purity < 68) adjustment += .01;
+        else if (turn.purity > 92) adjustment -= .01;
+
+        return clamp(1 + adjustment, .94, 1.06);
+      }
+
+      function recommendSettings({ current, tracking, flick, turn }) {
+        const baseByGrip = { wrist: 30, mixed: 40, arm: 50 };
+        const styleAdjust = { control: 5, balanced: 0, speed: -5 };
+        const boundsByGrip = {
+          wrist: [23, 39],
+          mixed: [29, 51],
+          arm: [37, 64]
+        };
+        const bounds = boundsByGrip[current.grip];
+        const profileTargetCm = baseByGrip[current.grip] + styleAdjust[current.style];
+        const currentCm = Number.isFinite(turn.cm360)
+          ? turn.cm360
+          : pubgCm360(current.dpi, current.currentSens, current.fov);
+        const safeCurrentCm = clamp(currentCm, 4, 200);
+        const testFactor = browserTestFactor(tracking, flick, turn);
+
+        const blendedTargetCm = profileTargetCm * .65 + safeCurrentCm * .35;
+        const gripBoundTargetCm = clamp(blendedTargetCm * testFactor, bounds[0], bounds[1]);
+        const padLimitCm = current.padWidth * 1.22;
+        const desiredCm = Math.min(gripBoundTargetCm, padLimitCm);
+        const padLimited = desiredCm < gripBoundTargetCm - .05;
+
+        const solution = solveSensitivity(current.dpi, desiredCm, current.fov);
+        const compatibleDpi = solution.feasible
+          ? current.dpi
+          : compatibleDpiFor(desiredCm, current.fov);
+        const compatibleSolution = solveSensitivity(compatibleDpi, desiredCm, current.fov);
+        const general = solution.gameSensitivity;
+
+        const acquisitionBonus = flick.averageReaction < 480 && flick.pathEfficiency > .78 ? 1 : 0;
+        const acquisitionPenalty = flick.pathEfficiency < .56 ? 1 : 0;
+        const aim = Math.round(clamp(
+          general + acquisitionBonus - acquisitionPenalty,
+          MIN_SENSITIVITY,
+          MAX_SENSITIVITY
+        ));
+
+        let adsDrop = 1;
+        if (tracking.accuracy < 60) adsDrop += 1;
+        if (current.style === "control") adsDrop += 1;
+        if (current.style === "speed") adsDrop = Math.max(0, adsDrop - 1);
+        const ads = Math.round(clamp(
+          general - adsDrop,
+          MIN_SENSITIVITY,
+          MAX_SENSITIVITY
+        ));
+
+        const recoilBase = { light: 1.08, neutral: 1.00, heavy: .94 };
+        const errorRatio = tracking.averageXError > 0
+          ? tracking.averageYError / tracking.averageXError
+          : 1;
+        let vertical = recoilBase[current.recoil];
+        if (errorRatio > 1.18) vertical += .02;
+        if (errorRatio < .82) vertical -= .02;
+        if (turn.purity < 65) vertical -= .02;
+        vertical = round(clamp(vertical, .80, 1.22), 2);
+
+        const taper = tracking.accuracy < 58 ? 2 : 1;
+        const scopes = {
+          "2x": Math.round(clamp(ads, MIN_SENSITIVITY, MAX_SENSITIVITY)),
+          "3x": Math.round(clamp(ads - taper, MIN_SENSITIVITY, MAX_SENSITIVITY)),
+          "4x": Math.round(clamp(ads - taper, MIN_SENSITIVITY, MAX_SENSITIVITY)),
+          "6x": Math.round(clamp(ads - taper - 1, MIN_SENSITIVITY, MAX_SENSITIVITY)),
+          "8x": Math.round(clamp(ads - taper - 2, MIN_SENSITIVITY, MAX_SENSITIVITY)),
+          "15x": Math.round(clamp(ads - taper - 3, MIN_SENSITIVITY, MAX_SENSITIVITY))
+        };
+
+        let status = "ok";
+        if (!solution.feasible) status = "dpi-limited";
+        else if (padLimited) status = "pad-limited";
+        else if (Math.abs(solution.errorPct) > 3) status = "rounding-limited";
+
+        return {
+          desiredCm,
+          appliedTargetCm: solution.feasible ? desiredCm : solution.actualCm,
+          actualCm: solution.actualCm,
+          rawSensitivity: solution.rawSensitivity,
+          general,
+          vertical,
+          aim,
+          ads,
+          scopes,
+          compatibleDpi,
+          compatibleSensitivity: compatibleSolution.gameSensitivity,
+          compatibleActualCm: compatibleSolution.actualCm,
+          testFactor,
+          feasibility: {
+            status,
+            padLimited,
+            dpiLimited: !solution.feasible,
+            rangeStatus: solution.rangeStatus,
+            errorPct: solution.errorPct,
+            slowestCm: pubgCm360(current.dpi, MIN_SENSITIVITY, current.fov),
+            fastestCm: pubgCm360(current.dpi, MAX_SENSITIVITY, current.fov)
+          }
+        };
+      }
+
+      return Object.freeze({
+        MIN_SENSITIVITY,
+        MAX_SENSITIVITY,
+        clamp,
+        round,
+        pubgCm360,
+        pubgSensitivityFromCm,
+        solveSensitivity,
+        maxDpiForCm,
+        compatibleDpiFor,
+        browserTestFactor,
+        recommendSettings
+      });
+    })();
+    // SENSITIVITY_CORE_END
+
+    const {
+      clamp,
+      round,
+      pubgCm360,
+      pubgSensitivityFromCm,
+      solveSensitivity,
+      recommendSettings
+    } = SENSITIVITY_CORE;
+
     const TEST_MS = 10000;
     const $ = (selector, root = document) => root.querySelector(selector);
     const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
-    const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
-    const round = (value, digits = 0) => {
-      const factor = 10 ** digits;
-      return Math.round(value * factor) / factor;
-    };
 
     const data = {
       tracking: null,
@@ -1883,23 +2207,17 @@
       };
     }
 
-    function pubgCm360(dpi, sensitivity, fov = 90) {
-      const degreesPerCount = 0.00005555 * fov * (10 ** (sensitivity / 50));
-      return (360 * 2.54) / (dpi * degreesPerCount);
-    }
-
-    function pubgSensitivityFromCm(dpi, cm360, fov = 90) {
-      return 50 * Math.log10((360 * 2.54) / (dpi * 0.00005555 * fov * cm360));
-    }
-
     function updateHeroReadout() {
       const current = config();
       const cm = pubgCm360(current.dpi, current.currentSens, current.fov);
+      const slowestCm = pubgCm360(current.dpi, SENSITIVITY_CORE.MIN_SENSITIVITY, current.fov);
       $("#hero-cm360").textContent = round(cm, 1).toFixed(1);
+      $("#dpi-range-label").textContent = `S1 最慢 ${round(slowestCm, 1).toFixed(1)} CM`;
 
       let label = "中速 / 混合控制区";
       if (cm < 28) label = "高速 / 手腕转身区";
       if (cm > 48) label = "低速 / 手臂精控区";
+      if (slowestCm < 29) label = `${label} · 高 DPI 慢速受限`;
       $("#speed-label").textContent = label;
 
       const activeCount = Math.round(clamp((70 - cm) / 50, 0, 1) * 11) + 1;
@@ -2340,84 +2658,39 @@
     })();
 
     function generatedSettings() {
-      const current = config();
-      const tracking = data.tracking;
-      const flick = data.flick;
-      const turn = data.turn;
-
-      const baseByGrip = { wrist: 30, mixed: 40, arm: 50 };
-      const styleAdjust = { control: 5, balanced: 0, speed: -5 };
-      let desiredCm = baseByGrip[current.grip] + styleAdjust[current.style];
-
-      if (tracking.accuracy < 58) desiredCm *= 1.09;
-      else if (tracking.accuracy > 82) desiredCm *= .97;
-
-      if (flick.pathEfficiency < .62) desiredCm *= 1.08;
-      else if (flick.averageReaction > 720 && flick.pathEfficiency > .76) desiredCm *= .94;
-
-      if (flick.hits >= 18 && flick.pathEfficiency >= .72) desiredCm *= .98;
-      if (turn.purity < 72) desiredCm *= 1.03;
-
-      desiredCm = desiredCm * .76 + turn.cm360 * .24;
-      desiredCm = Math.min(desiredCm, current.padWidth * 1.22);
-
-      const bounds = {
-        wrist: [23, 39],
-        mixed: [29, 51],
-        arm: [37, 64]
-      }[current.grip];
-      desiredCm = clamp(desiredCm, bounds[0], bounds[1]);
-
-      const general = Math.round(clamp(pubgSensitivityFromCm(current.dpi, desiredCm, current.fov), 1, 100));
-      const acquisitionBonus = flick.averageReaction < 480 && flick.pathEfficiency > .72 ? 1 : 0;
-      const aim = Math.round(clamp(general + acquisitionBonus - (flick.pathEfficiency < .58 ? 2 : 0), 1, 100));
-
-      let adsDrop = 1;
-      if (tracking.accuracy < 72) adsDrop += 1;
-      if (flick.pathEfficiency < .65) adsDrop += 1;
-      if (current.style === "control") adsDrop += 1;
-      if (current.style === "speed") adsDrop = Math.max(0, adsDrop - 1);
-      const ads = Math.round(clamp(general - adsDrop, 1, 100));
-
-      const recoilBase = { light: 1.08, neutral: 1.00, heavy: .94 };
-      const errorRatio = tracking.averageXError > 0
-        ? tracking.averageYError / tracking.averageXError
-        : 1;
-      let vertical = recoilBase[current.recoil];
-      if (errorRatio > 1.12) vertical += .04;
-      if (errorRatio < .88) vertical -= .03;
-      if (turn.purity < 70) vertical -= .02;
-      vertical = round(clamp(vertical, .80, 1.22), 2);
-
-      const taper = tracking.accuracy < 62 ? 2 : 1;
-      const scope2 = Math.round(clamp(ads, 1, 100));
-      const scope3 = Math.round(clamp(ads - taper, 1, 100));
-      const scope4 = Math.round(clamp(ads - taper, 1, 100));
-      const scope6 = Math.round(clamp(ads - taper - 1, 1, 100));
-      const scope8 = Math.round(clamp(ads - taper - 2, 1, 100));
-      const scope15 = Math.round(clamp(ads - taper - 3, 1, 100));
-
-      return {
-        desiredCm,
-        general,
-        vertical,
-        aim,
-        ads,
-        scopes: {
-          "2x": scope2,
-          "3x": scope3,
-          "4x": scope4,
-          "6x": scope6,
-          "8x": scope8,
-          "15x": scope15
-        }
-      };
+      return recommendSettings({
+        current: config(),
+        tracking: data.tracking,
+        flick: data.flick,
+        turn: data.turn
+      });
     }
 
     function buildAdvice(settings) {
       const advice = [];
+      const current = config();
+
+      if (settings.feasibility.status === "dpi-limited") {
+        advice.push(
+          `${current.dpi} DPI 已碰到 PUBG 常规灵敏度下限 1：理想目标是 `
+          + `${round(settings.desiredCm, 1).toFixed(1)} cm/360，当前 DPI 最近只能达到 `
+          + `${round(settings.actualCm, 1).toFixed(1)} cm/360。若要接近理想手感，先改为 `
+          + `${settings.compatibleDpi} DPI、常规灵敏度 ${settings.compatibleSensitivity}，再重新完成测试。`
+        );
+      } else if (settings.feasibility.status === "pad-limited") {
+        advice.push(
+          `推荐已按你的 ${round(current.padWidth, 1).toFixed(1)} cm 鼠标垫宽度收紧，避免一圈转身距离超过可用横向空间。`
+        );
+      }
+
       if (data.tracking.accuracy < 68) {
-        advice.push(`追踪精准度为 ${round(data.tracking.accuracy)}%。先用推荐 ADS ${settings.ads} 连续追车靶；若准星仍频繁越过目标，只把 ADS 与 2x 各减 1。`);
+        const trackingAdjustment = settings.ads > 1
+          ? "若准星仍频繁越过目标，只把 ADS 与 2x 各减 1。"
+          : "ADS 已到游戏下限 1，不要再下调；优先采用上方兼容 DPI 方案后重测。";
+        advice.push(
+          `追踪精准度为 ${round(data.tracking.accuracy)}%。先用推荐 ADS ${settings.ads} 连续追车靶；`
+          + trackingAdjustment
+        );
       } else {
         advice.push(`追踪精准度达到 ${round(data.tracking.accuracy)}%。先保持 ADS ${settings.ads} 不变；若贴不住横向跑动目标，再只加 1。`);
       }
@@ -2425,12 +2698,11 @@
       if (data.flick.pathEfficiency < .65) {
         advice.push(`定位路径效率为 ${round(data.flick.pathEfficiency * 100)}%，存在绕行或过冲。常规灵敏度先不要上调；用同一数值完成 3 轮定位测试后再判断。`);
       } else if (data.flick.averageReaction > 650) {
-        advice.push(`平均定位反应 ${round(data.flick.averageReaction)} ms，路径较直但启动偏慢。近战若总是差半拍，可把“瞄准灵敏度”从 ${settings.aim} 微调到 ${settings.aim + 1}。`);
+        advice.push(`平均定位反应 ${round(data.flick.averageReaction)} ms，路径较直但启动偏慢。近战若总是差半拍，可把“瞄准灵敏度”从 ${settings.aim} 微调到 ${clamp(settings.aim + 1, 1, 100)}。`);
       } else {
         advice.push(`平均定位反应 ${round(data.flick.averageReaction)} ms，路径效率 ${round(data.flick.pathEfficiency * 100)}%。当前速度与精度平衡良好，不建议追求更高数值。`);
       }
 
-      const current = config();
       if (current.recoil === "light") {
         advice.push(`你选择了“下拉偏小”，所以垂直增强给到 ${settings.vertical.toFixed(2)}。若 30 发弹道持续上飘，每次加 0.02；若总压到脚下，每次减 0.02。`);
       } else if (current.recoil === "heavy") {
@@ -2439,8 +2711,49 @@
         advice.push(`垂直增强从 ${settings.vertical.toFixed(2)} 起步。训练场用同一把枪、同一配件测试 3 组 30 发，只按弹着点整体上/下偏移做 ±0.02 微调。`);
       }
 
-      advice.push(`推荐目标约 ${round(settings.desiredCm, 1).toFixed(1)} cm/360。进训练场对准固定物完整转一圈，用尺复核；误差超过 3 cm 时只调整“常规灵敏度”1 格后重测。`);
+      advice.push(
+        `当前输出在游戏中的估算落点约 ${round(settings.actualCm, 1).toFixed(1)} cm/360。`
+        + "进训练场对准固定物完整转一圈，用尺复核；误差超过 3 cm 时只调整“常规灵敏度”1 格后重测。"
+      );
       return advice;
+    }
+
+    function renderFeasibility(settings, current) {
+      const status = settings.feasibility.status;
+      const card = $("#feasibility-card");
+      card.dataset.status = status;
+      $("#out-desired-cm").textContent = `${round(settings.desiredCm, 1).toFixed(1)} CM`;
+      $("#out-actual-cm").textContent = `${round(settings.actualCm, 1).toFixed(1)} CM`;
+      $("#out-compatible-solution").textContent =
+        `${settings.compatibleDpi} DPI · S${settings.compatibleSensitivity}`;
+
+      if (status === "dpi-limited") {
+        $("#result-title").textContent = "当前 DPI 可实现的最近值";
+        $("#feasibility-title").textContent = "当前 DPI 已触及游戏最低刻度";
+        $("#feasibility-copy").textContent =
+          `${current.dpi} DPI 的灵敏度 1 最慢约 ${round(settings.feasibility.slowestCm, 1).toFixed(1)} cm/360，`
+          + `无法达到理想的 ${round(settings.desiredCm, 1).toFixed(1)} cm/360。右侧给出兼容 DPI 起点。`;
+        return;
+      }
+
+      $("#result-title").textContent = "可直接填入游戏的推荐值";
+      if (status === "pad-limited") {
+        $("#feasibility-title").textContent = "已按鼠标垫宽度收紧目标";
+        $("#feasibility-copy").textContent =
+          `目标受 ${round(current.padWidth, 1).toFixed(1)} cm 横向空间限制；输出仍在当前 DPI 的 PUBG 刻度范围内。`;
+        return;
+      }
+
+      if (status === "rounding-limited") {
+        $("#feasibility-title").textContent = "目标可用，整数刻度存在小幅误差";
+        $("#feasibility-copy").textContent =
+          `当前 DPI 可实现该区间；取整后与理想目标相差 ${Math.abs(round(settings.feasibility.errorPct, 1)).toFixed(1)}%。`;
+        return;
+      }
+
+      $("#feasibility-title").textContent = "当前 DPI 可以实现目标手感";
+      $("#feasibility-copy").textContent =
+        `PUBG 整数刻度取整后误差 ${Math.abs(round(settings.feasibility.errorPct, 1)).toFixed(1)}%，可直接作为训练场起点。`;
     }
 
     function maybeGenerate() {
@@ -2460,18 +2773,24 @@
       });
 
       const current = config();
-      const change = settings.desiredCm - data.turn.cm360;
+      renderFeasibility(settings, current);
+      const change = settings.actualCm - data.turn.cm360;
       const direction = Math.abs(change) < 1.5
         ? "基本保留你当前的转身节奏"
         : change > 0
           ? "略降速度以换取更稳的跟枪与远点控制"
           : "略提速度以缩短近战转身和首次定位时间";
+      const targetCopy = settings.feasibility.dpiLimited
+        ? `理想目标 ${round(settings.desiredCm, 1).toFixed(1)} cm/360，`
+          + `但 ${current.dpi} DPI 的游戏内最近值是 ${round(settings.actualCm, 1).toFixed(1)} cm/360`
+        : `${current.dpi} DPI 下，游戏内估算落点约 ${round(settings.actualCm, 1).toFixed(1)} cm/360`;
       $("#result-summary").textContent =
-        `${current.dpi} DPI 下，推荐落点约 ${round(settings.desiredCm, 1).toFixed(1)} cm/360；${direction}。`
-        + " 倍镜采用小幅渐降，不使用激进的倍率除法。";
+        `${targetCopy}；${direction}。倍镜采用小幅渐降，不使用激进的倍率除法。`;
 
       const confidence = data.flick.hits >= 8 && data.tracking.accuracy >= 25 ? "高" : "中";
-      $("#confidence").textContent = `可信度 · ${confidence}`;
+      $("#confidence").textContent = settings.feasibility.dpiLimited
+        ? "可实现性 · 受限"
+        : `测试参考 · ${confidence}`;
 
       const advice = buildAdvice(settings);
       $("#advice-list").innerHTML = advice
@@ -2485,8 +2804,11 @@
     function settingsText() {
       const settings = JSON.parse($("#results-shell").dataset.settings || "{}");
       if (!settings.scopes) return "";
-      return [
-        "PUBG PC 灵敏度推荐",
+      const current = config();
+      const lines = [
+        settings.feasibility.dpiLimited
+          ? `PUBG PC 灵敏度推荐（${current.dpi} DPI 最近可实现值）`
+          : "PUBG PC 灵敏度推荐",
         `常规灵敏度：${settings.general}`,
         `垂直灵敏度增强：${settings.vertical.toFixed(2)}`,
         `瞄准灵敏度：${settings.aim}`,
@@ -2498,8 +2820,19 @@
         `6倍镜：${settings.scopes["6x"]}`,
         `8倍镜：${settings.scopes["8x"]}`,
         `15倍镜：${settings.scopes["15x"]}`,
-        `目标 cm/360：${round(settings.desiredCm, 1).toFixed(1)}`
-      ].join("\n");
+        `理想目标 cm/360：${round(settings.desiredCm, 1).toFixed(1)}`,
+        `当前 DPI 实际 cm/360：${round(settings.actualCm, 1).toFixed(1)}`
+      ];
+
+      if (settings.feasibility.dpiLimited) {
+        lines.push(
+          `注意：${current.dpi} DPI 无法在 PUBG 1—100 刻度内达到理想目标`,
+          `兼容起点：${settings.compatibleDpi} DPI + 常规灵敏度 ${settings.compatibleSensitivity}`,
+          "更改 DPI 后请重新完成三项测试"
+        );
+      }
+
+      return lines.join("\n");
     }
 
     $("#copy-button").addEventListener("click", async () => {
@@ -2535,9 +2868,12 @@
 
     // Minimal inspection surface for local browser verification.
     window.__PUBG_SENS_LAB__ = {
-      version: "42.2",
+      version: "42.2-v2",
       pubgCm360,
       pubgSensitivityFromCm,
+      solveSensitivity,
+      recommendSettings,
+      browserTestFactor: SENSITIVITY_CORE.browserTestFactor,
       get data() { return structuredClone(data); }
     };
   </script>
