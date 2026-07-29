@@ -1,0 +1,1795 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#ebe8dc">
+  <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+  <title>鼠标定位练习场</title>
+  <style>
+    :root {
+      --paper: #ebe8dc;
+      --paper-strong: #fffdf4;
+      --ink: #111716;
+      --ink-soft: #1b2321;
+      --muted: #6a716c;
+      --line: #c8c9bd;
+      --orange: #ff5a36;
+      --orange-soft: #ff8a6e;
+      --lime: #cef064;
+      --blue: #3156ee;
+      --white: #fffdf4;
+      --display: "Bahnschrift Condensed", "DIN Condensed", "Microsoft YaHei UI", sans-serif;
+      --body: "Microsoft YaHei UI", "Noto Sans CJK SC", sans-serif;
+      --shadow: 0 20px 55px rgba(17, 23, 22, .11);
+      --target-size: 24px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      min-width: 320px;
+      margin: 0;
+      color: var(--ink);
+      background:
+        linear-gradient(rgba(17, 23, 22, .035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(17, 23, 22, .035) 1px, transparent 1px),
+        var(--paper);
+      background-size: 26px 26px;
+      font-family: var(--body);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    button,
+    a {
+      font: inherit;
+    }
+
+    button {
+      color: inherit;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .noise {
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      pointer-events: none;
+      opacity: .16;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.09'/%3E%3C/svg%3E");
+      mix-blend-mode: multiply;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      display: flex;
+      min-height: 66px;
+      padding: 10px clamp(16px, 4vw, 62px);
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(17, 23, 22, .16);
+      background: rgba(235, 232, 220, .91);
+      backdrop-filter: blur(18px);
+    }
+
+    .brand {
+      display: flex;
+      gap: 11px;
+      align-items: center;
+      font-family: var(--display);
+      font-weight: 900;
+      letter-spacing: .08em;
+    }
+
+    .brand-mark {
+      display: grid;
+      width: 34px;
+      height: 34px;
+      place-items: center;
+      border: 2px solid var(--ink);
+      background: var(--orange);
+      box-shadow: 4px 4px 0 var(--ink);
+      color: var(--white);
+      font-size: 11px;
+    }
+
+    .top-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .back-link {
+      padding: 9px 13px;
+      border: 1px solid var(--ink);
+      border-radius: 999px;
+      color: var(--ink);
+      background: rgba(255, 253, 244, .7);
+      font-weight: 800;
+      transition: .2s ease;
+    }
+
+    .back-link:hover {
+      color: var(--white);
+      background: var(--ink);
+      transform: translateY(-2px);
+    }
+
+    .back-link:focus-visible,
+    .choice-button:focus-visible {
+      outline: 3px solid rgba(49, 86, 238, .34);
+      outline-offset: 3px;
+    }
+
+    main {
+      width: min(1440px, calc(100% - 34px));
+      margin: 0 auto;
+      padding: 40px 0 80px;
+    }
+
+    .hero {
+      position: relative;
+      display: grid;
+      min-height: 360px;
+      padding: clamp(28px, 5vw, 66px);
+      grid-template-columns: minmax(0, 1.3fr) minmax(280px, .7fr);
+      gap: clamp(28px, 5vw, 80px);
+      align-items: end;
+      overflow: hidden;
+      border: 1px solid var(--ink);
+      border-radius: 30px;
+      background:
+        radial-gradient(circle at 85% 18%, rgba(206, 240, 100, .52), transparent 25%),
+        var(--paper-strong);
+      box-shadow: var(--shadow);
+    }
+
+    .hero::before {
+      position: absolute;
+      right: -76px;
+      top: -98px;
+      width: 318px;
+      height: 318px;
+      border: 1px solid rgba(17, 23, 22, .18);
+      border-radius: 50%;
+      box-shadow:
+        0 0 0 34px rgba(17, 23, 22, .035),
+        0 0 0 70px rgba(17, 23, 22, .025);
+      content: "";
+    }
+
+    .eyebrow {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin: 0 0 14px;
+      color: var(--muted);
+      font-family: var(--display);
+      font-size: 13px;
+      font-weight: 900;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+    }
+
+    .eyebrow::before {
+      width: 30px;
+      height: 3px;
+      background: var(--orange);
+      content: "";
+    }
+
+    h1 {
+      position: relative;
+      z-index: 1;
+      margin: 0;
+      font-family: var(--display);
+      font-size: clamp(58px, 8.5vw, 126px);
+      font-weight: 900;
+      letter-spacing: -.065em;
+      line-height: .82;
+    }
+
+    h1 .highlight {
+      display: inline-block;
+      padding: .05em .13em .04em;
+      color: var(--white);
+      background: var(--orange);
+      box-shadow: .08em .08em 0 var(--ink);
+      transform: rotate(-1.1deg);
+    }
+
+    .hero-copy {
+      position: relative;
+      z-index: 1;
+      max-width: 700px;
+      margin: 26px 0 0;
+      color: #4c5551;
+      font-size: clamp(14px, 1.35vw, 18px);
+      line-height: 1.8;
+    }
+
+    .hero-copy strong {
+      color: var(--ink);
+    }
+
+    .hero-ticket {
+      position: relative;
+      z-index: 2;
+      padding: 22px;
+      border: 1px solid var(--ink);
+      border-radius: 19px;
+      background: rgba(255, 253, 244, .88);
+      box-shadow: 8px 8px 0 rgba(17, 23, 22, .11);
+    }
+
+    .ticket-index {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: var(--muted);
+      font-family: var(--display);
+      font-size: 10px;
+      font-weight: 900;
+      letter-spacing: .13em;
+    }
+
+    .ticket-main {
+      display: block;
+      margin: 18px 0 12px;
+      font-family: var(--display);
+      font-size: clamp(35px, 4vw, 57px);
+      font-weight: 900;
+      letter-spacing: -.04em;
+      line-height: .9;
+    }
+
+    .ticket-main span {
+      color: var(--orange);
+    }
+
+    .ticket-rule {
+      margin: 0;
+      padding-top: 13px;
+      border-top: 1px dashed var(--line);
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.65;
+    }
+
+    .setup-panel {
+      display: grid;
+      margin-top: 24px;
+      padding: 18px;
+      grid-template-columns: minmax(0, 1.25fr) minmax(300px, .75fr);
+      gap: 18px;
+      border: 1px solid var(--ink);
+      border-radius: 22px;
+      background: var(--paper-strong);
+      box-shadow: 7px 7px 0 rgba(17, 23, 22, .08);
+    }
+
+    .choice-block {
+      min-width: 0;
+    }
+
+    .choice-label {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 900;
+      letter-spacing: .11em;
+      text-transform: uppercase;
+    }
+
+    .choice-label b {
+      color: var(--ink);
+    }
+
+    .choice-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 7px;
+    }
+
+    .choice-button {
+      min-height: 62px;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      background: #f5f2e8;
+      text-align: left;
+      cursor: pointer;
+      transition: .18s ease;
+    }
+
+    .choice-button:hover {
+      border-color: var(--ink);
+      transform: translateY(-2px);
+    }
+
+    .choice-button[aria-pressed="true"] {
+      border-color: var(--ink);
+      color: var(--white);
+      background: var(--ink);
+      box-shadow: inset 0 -4px 0 var(--orange);
+    }
+
+    .choice-button strong,
+    .choice-button small {
+      display: block;
+    }
+
+    .choice-button strong {
+      font-family: var(--display);
+      font-size: 15px;
+      font-weight: 900;
+    }
+
+    .choice-button small {
+      margin-top: 4px;
+      opacity: .62;
+      font-size: 9px;
+      line-height: 1.35;
+    }
+
+    .choice-button:disabled {
+      opacity: .46;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .trainer-shell {
+      margin-top: 24px;
+      overflow: hidden;
+      border: 1px solid var(--ink);
+      border-radius: 28px;
+      background: var(--ink);
+      box-shadow: 0 24px 65px rgba(17, 23, 22, .2);
+    }
+
+    .score-ribbon {
+      display: grid;
+      grid-template-columns: 1.15fr repeat(6, minmax(0, .72fr));
+      border-bottom: 1px solid rgba(255, 255, 255, .14);
+      color: var(--white);
+      background: var(--ink-soft);
+    }
+
+    .score-title,
+    .score-cell {
+      min-width: 0;
+      padding: 17px 18px;
+      border-right: 1px solid rgba(255, 255, 255, .11);
+    }
+
+    .score-cell:last-child {
+      border-right: 0;
+    }
+
+    .score-title {
+      display: grid;
+      align-content: center;
+    }
+
+    .score-title small,
+    .score-cell small {
+      display: block;
+      color: rgba(255, 255, 255, .47);
+      font-size: 8px;
+      font-weight: 900;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+
+    .score-title strong {
+      display: block;
+      margin-top: 4px;
+      font-family: var(--display);
+      font-size: 17px;
+      font-weight: 900;
+      letter-spacing: .03em;
+    }
+
+    .score-cell output {
+      display: block;
+      margin-top: 6px;
+      overflow: hidden;
+      color: var(--lime);
+      font-family: var(--display);
+      font-size: clamp(22px, 2.6vw, 36px);
+      font-weight: 900;
+      line-height: 1;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .arena-wrap {
+      padding: 12px;
+      background: #252d2a;
+    }
+
+    .trainer-arena {
+      position: relative;
+      min-height: clamp(450px, 60vh, 690px);
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, .18);
+      border-radius: 18px;
+      color: var(--white);
+      background:
+        linear-gradient(rgba(255, 255, 255, .055) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, .055) 1px, transparent 1px),
+        radial-gradient(circle at center, rgba(49, 86, 238, .16), transparent 48%),
+        #0e1413;
+      background-size: 42px 42px, 42px 42px, auto, auto;
+      touch-action: none;
+      user-select: none;
+    }
+
+    .trainer-arena::before,
+    .trainer-arena::after {
+      position: absolute;
+      inset: 50% auto auto 50%;
+      width: min(72vw, 710px);
+      height: min(72vw, 710px);
+      border: 1px solid rgba(255, 255, 255, .055);
+      border-radius: 50%;
+      pointer-events: none;
+      content: "";
+      transform: translate(-50%, -50%);
+    }
+
+    .trainer-arena::after {
+      width: min(40vw, 390px);
+      height: min(40vw, 390px);
+    }
+
+    @media (pointer: fine) {
+      .trainer-arena.pointer-inside {
+        cursor: none;
+      }
+    }
+
+    .arena-status {
+      position: absolute;
+      left: 18px;
+      top: 17px;
+      z-index: 4;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      color: rgba(255, 255, 255, .6);
+      font-size: 10px;
+      font-weight: 900;
+      letter-spacing: .09em;
+      text-transform: uppercase;
+    }
+
+    .arena-status::before {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--orange);
+      box-shadow: 0 0 0 5px rgba(255, 90, 54, .13);
+      content: "";
+    }
+
+    .trainer-arena[data-state="running"] .arena-status::before {
+      background: var(--lime);
+      box-shadow: 0 0 0 5px rgba(206, 240, 100, .12);
+      animation: status-pulse 1s ease-in-out infinite;
+    }
+
+    .arena-note {
+      position: absolute;
+      right: 18px;
+      bottom: 15px;
+      z-index: 4;
+      max-width: 330px;
+      color: rgba(255, 255, 255, .35);
+      font-size: 9px;
+      line-height: 1.5;
+      text-align: right;
+    }
+
+    .crosshair {
+      --x: 50%;
+      --y: 50%;
+      position: absolute;
+      left: var(--x);
+      top: var(--y);
+      z-index: 12;
+      width: 38px;
+      height: 38px;
+      opacity: 0;
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+      transition: opacity .12s ease;
+    }
+
+    .pointer-inside .crosshair {
+      opacity: 1;
+    }
+
+    .crosshair::before,
+    .crosshair::after {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      background: var(--lime);
+      box-shadow: 0 0 7px rgba(206, 240, 100, .62);
+      content: "";
+      transform: translate(-50%, -50%);
+    }
+
+    .crosshair::before {
+      width: 38px;
+      height: 2px;
+    }
+
+    .crosshair::after {
+      width: 2px;
+      height: 38px;
+    }
+
+    .crosshair i {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 7px;
+      height: 7px;
+      border: 2px solid var(--lime);
+      border-radius: 50%;
+      background: #0e1413;
+      transform: translate(-50%, -50%);
+    }
+
+    .start-gate,
+    .retest-gate {
+      position: absolute;
+      z-index: 5;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(255, 255, 255, .38);
+      border-radius: 50%;
+      pointer-events: none;
+      text-align: center;
+    }
+
+    .start-gate {
+      left: 50%;
+      top: 50%;
+      width: 132px;
+      height: 132px;
+      background: rgba(17, 23, 22, .74);
+      box-shadow:
+        0 0 0 18px rgba(255, 255, 255, .035),
+        0 0 0 36px rgba(255, 255, 255, .022);
+      transform: translate(-50%, -50%);
+      transition: .22s ease;
+    }
+
+    .start-gate strong,
+    .retest-gate strong {
+      display: block;
+      font-family: var(--display);
+      font-size: 17px;
+      font-weight: 900;
+      letter-spacing: .06em;
+    }
+
+    .start-gate small,
+    .retest-gate small {
+      display: block;
+      margin-top: 2px;
+      color: rgba(255, 255, 255, .46);
+      font-size: 8px;
+      letter-spacing: .06em;
+    }
+
+    .trainer-arena[data-state="running"] .start-gate,
+    .trainer-arena[data-state="complete"] .start-gate {
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(.7);
+    }
+
+    .trainer-target {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      z-index: 8;
+      display: grid;
+      width: var(--target-size);
+      height: var(--target-size);
+      place-items: center;
+      border: 2px solid var(--white);
+      border-radius: 50%;
+      color: var(--ink);
+      background: var(--orange);
+      box-shadow:
+        0 0 0 3px rgba(255, 90, 54, .14),
+        0 0 13px rgba(255, 90, 54, .32);
+      opacity: 0;
+      pointer-events: none;
+      transform: translate(-50%, -50%) scale(.72);
+    }
+
+    .trainer-target::before {
+      width: 27%;
+      height: 27%;
+      border: 2px solid var(--ink);
+      border-radius: 50%;
+      background: var(--white);
+      content: "";
+    }
+
+    .trainer-target.active {
+      opacity: 1;
+      animation: target-in .18s cubic-bezier(.2, .8, .2, 1) both;
+    }
+
+    .hit-burst {
+      position: absolute;
+      z-index: 7;
+      width: 16px;
+      height: 16px;
+      border: 2px solid var(--lime);
+      border-radius: 50%;
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+      animation: hit-burst .42s ease-out both;
+    }
+
+    .results-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 15;
+      display: grid;
+      padding: clamp(24px, 5vw, 64px);
+      grid-template-columns: minmax(170px, .62fr) minmax(0, 1.38fr);
+      gap: clamp(24px, 5vw, 70px);
+      align-items: center;
+      visibility: hidden;
+      opacity: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(105deg, rgba(14, 20, 19, .98), rgba(14, 20, 19, .91)),
+        #0e1413;
+      transform: translateY(10px);
+      transition: .28s ease;
+    }
+
+    .trainer-arena[data-state="complete"] .results-overlay {
+      visibility: visible;
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .result-grade {
+      display: grid;
+      min-height: 220px;
+      place-items: center;
+      border: 1px solid rgba(255, 255, 255, .22);
+      border-radius: 50%;
+      background:
+        radial-gradient(circle, rgba(206, 240, 100, .18), transparent 63%);
+      text-align: center;
+    }
+
+    .result-grade small {
+      display: block;
+      color: rgba(255, 255, 255, .48);
+      font-size: 8px;
+      font-weight: 900;
+      letter-spacing: .13em;
+    }
+
+    .result-grade strong {
+      display: block;
+      color: var(--lime);
+      font-family: var(--display);
+      font-size: clamp(84px, 12vw, 160px);
+      font-weight: 900;
+      line-height: .75;
+    }
+
+    .result-copy h2 {
+      margin: 0;
+      font-family: var(--display);
+      font-size: clamp(36px, 5vw, 66px);
+      font-weight: 900;
+      letter-spacing: -.035em;
+      line-height: .92;
+    }
+
+    .result-copy > p {
+      max-width: 680px;
+      margin: 15px 0 0;
+      color: rgba(255, 255, 255, .58);
+      font-size: 11px;
+      line-height: 1.7;
+    }
+
+    .result-stats {
+      display: grid;
+      margin-top: 20px;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 7px;
+    }
+
+    .result-stats span {
+      padding: 12px;
+      border: 1px solid rgba(255, 255, 255, .12);
+      border-radius: 11px;
+      background: rgba(255, 255, 255, .035);
+    }
+
+    .result-stats small,
+    .result-stats b {
+      display: block;
+    }
+
+    .result-stats small {
+      color: rgba(255, 255, 255, .43);
+      font-size: 8px;
+    }
+
+    .result-stats b {
+      margin-top: 6px;
+      color: var(--white);
+      font-family: var(--display);
+      font-size: 22px;
+      font-weight: 900;
+    }
+
+    .advice-list {
+      display: grid;
+      gap: 6px;
+      margin: 17px 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .advice-list li {
+      display: grid;
+      grid-template-columns: 22px 1fr;
+      gap: 9px;
+      align-items: start;
+      color: rgba(255, 255, 255, .7);
+      font-size: 10px;
+      line-height: 1.55;
+    }
+
+    .advice-list b {
+      display: grid;
+      width: 21px;
+      height: 21px;
+      place-items: center;
+      border-radius: 50%;
+      color: var(--ink);
+      background: var(--lime);
+      font-family: var(--display);
+      font-size: 9px;
+    }
+
+    .retest-gate {
+      right: 22px;
+      bottom: 20px;
+      width: 92px;
+      height: 92px;
+      border-color: rgba(206, 240, 100, .48);
+      background: rgba(206, 240, 100, .08);
+    }
+
+    .retest-gate strong {
+      color: var(--lime);
+      font-size: 14px;
+    }
+
+    .method-grid {
+      display: grid;
+      margin-top: 24px;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+
+    .method-card {
+      padding: 23px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: rgba(255, 253, 244, .72);
+    }
+
+    .method-card b {
+      display: block;
+      margin-bottom: 8px;
+      font-family: var(--display);
+      font-size: 18px;
+      font-weight: 900;
+    }
+
+    .method-card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.7;
+    }
+
+    footer {
+      display: flex;
+      width: min(1440px, calc(100% - 34px));
+      margin: 0 auto;
+      padding: 22px 0 34px;
+      justify-content: space-between;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 10px;
+      line-height: 1.6;
+    }
+
+    @keyframes target-in {
+      from {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(.55);
+      }
+      to {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+      }
+    }
+
+    @keyframes hit-burst {
+      from {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(.5);
+      }
+      to {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(5.5);
+      }
+    }
+
+    @keyframes status-pulse {
+      50% {
+        opacity: .45;
+      }
+    }
+
+    @media (max-width: 1050px) {
+      .hero {
+        grid-template-columns: 1fr;
+        min-height: 0;
+      }
+
+      .hero-ticket {
+        width: min(100%, 470px);
+      }
+
+      .setup-panel {
+        grid-template-columns: 1fr;
+      }
+
+      .score-ribbon {
+        grid-template-columns: repeat(3, 1fr);
+      }
+
+      .score-title {
+        grid-column: 1 / -1;
+        border-bottom: 1px solid rgba(255, 255, 255, .11);
+      }
+
+      .results-overlay {
+        grid-template-columns: minmax(150px, .5fr) minmax(0, 1.5fr);
+      }
+
+      .result-grade {
+        min-height: 180px;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .top-actions span {
+        display: none;
+      }
+
+      main {
+        width: min(100% - 22px, 1440px);
+        padding-top: 20px;
+      }
+
+      .hero {
+        padding: 30px 21px;
+        border-radius: 23px;
+      }
+
+      .setup-panel,
+      .trainer-shell {
+        border-radius: 20px;
+      }
+
+      .choice-row {
+        grid-template-columns: 1fr;
+      }
+
+      .choice-button {
+        min-height: 54px;
+      }
+
+      .score-ribbon {
+        grid-template-columns: repeat(3, 1fr);
+      }
+
+      .score-title {
+        grid-column: 1 / -1;
+      }
+
+      .score-cell {
+        padding: 13px 11px;
+      }
+
+      .score-cell:nth-child(n+5) {
+        border-top: 1px solid rgba(255, 255, 255, .11);
+      }
+
+      .trainer-arena {
+        min-height: 480px;
+      }
+
+      .results-overlay {
+        display: block;
+        padding: 26px 22px 118px;
+        overflow-y: auto;
+      }
+
+      .result-grade {
+        width: 126px;
+        min-height: 126px;
+        margin-bottom: 24px;
+      }
+
+      .result-copy h2 {
+        font-size: 38px;
+      }
+
+      .result-stats {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .method-grid {
+        grid-template-columns: 1fr;
+      }
+
+      footer {
+        display: block;
+        width: min(100% - 22px, 1440px);
+      }
+    }
+
+    @media (max-width: 460px) {
+      .brand span:last-child {
+        display: none;
+      }
+
+      h1 {
+        font-size: 52px;
+      }
+
+      .back-link {
+        padding: 8px 10px;
+        font-size: 10px;
+      }
+
+      .score-ribbon {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .score-cell:nth-child(n+4) {
+        border-top: 1px solid rgba(255, 255, 255, .11);
+      }
+
+      .arena-status {
+        max-width: 230px;
+      }
+
+      .arena-note {
+        display: none;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="noise" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark">T/01</span>
+      <span>POINTER ACQUISITION RANGE</span>
+    </div>
+    <div class="top-actions">
+      <span>浏览器本地练习 · 无数据上传</span>
+      <a class="back-link" href="./pubg-sensitivity.html">返回灵敏度助手 →</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero" aria-labelledby="page-title">
+      <div>
+        <p class="eyebrow">Acquire / Stop / Reset</p>
+        <h1 id="page-title">鼠标<span class="highlight">定位</span><br>练习场</h1>
+        <p class="hero-copy">
+          把准星移进训练区，对准中央启动环并按下左键；随后快速对准随机目标。
+          <strong>只有左键落在橙色实体圆内才算命中，外圈光晕不参与判定。</strong>点空会计一次失误，页面会记录反应速度、真实命中率、移动路径和连续稳定性。
+        </p>
+      </div>
+
+      <aside class="hero-ticket" aria-label="练习说明">
+        <div class="ticket-index">
+          <span>SESSION TICKET / 001</span>
+          <span>PC MOUSE</span>
+        </div>
+        <strong class="ticket-main">CLICK<br><span>TO HIT</span></strong>
+        <p class="ticket-rule">
+          建议关闭 Windows“提高指针精确度”，固定系统缩放与鼠标速度后连续练 3 轮。
+          目标仅 12—24px，命中范围严格等于可见实体圆；本页训练屏幕光标定位，不等同于 PUBG 原始输入。
+        </p>
+      </aside>
+    </section>
+
+    <section class="setup-panel" aria-label="练习设置">
+      <div class="choice-block">
+        <div class="choice-label">
+          <span>01 / Training mode</span>
+          <b id="mode-readout">精准定位 · 24PX</b>
+        </div>
+        <div class="choice-row" id="mode-choices">
+          <button class="choice-button" type="button" data-mode="standard" aria-pressed="true">
+            <strong>精准定位</strong>
+            <small>24PX 小目标 · 默认训练</small>
+          </button>
+          <button class="choice-button" type="button" data-mode="precision" aria-pressed="false">
+            <strong>微目标精确</strong>
+            <small>18PX 微目标 · 练习停准</small>
+          </button>
+          <button class="choice-button" type="button" data-mode="micro" aria-pressed="false">
+            <strong>极限点位</strong>
+            <small>12PX 极小目标 · 严格判定</small>
+          </button>
+        </div>
+      </div>
+
+      <div class="choice-block">
+        <div class="choice-label">
+          <span>02 / Session length</span>
+          <b id="duration-readout">20 秒</b>
+        </div>
+        <div class="choice-row" id="duration-choices">
+          <button class="choice-button" type="button" data-duration="20" aria-pressed="true">
+            <strong>20 秒</strong>
+            <small>快速热身</small>
+          </button>
+          <button class="choice-button" type="button" data-duration="40" aria-pressed="false">
+            <strong>40 秒</strong>
+            <small>标准训练</small>
+          </button>
+          <button class="choice-button" type="button" data-duration="60" aria-pressed="false">
+            <strong>60 秒</strong>
+            <small>稳定性挑战</small>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section class="trainer-shell" aria-label="定位训练台">
+      <div class="score-ribbon">
+        <div class="score-title">
+          <small>Live telemetry</small>
+          <strong id="session-label">等待准星进入启动环</strong>
+        </div>
+        <div class="score-cell">
+          <small>剩余时间</small>
+          <output id="timer">20.0</output>
+        </div>
+        <div class="score-cell">
+          <small>命中目标</small>
+          <output id="hits">0</output>
+        </div>
+        <div class="score-cell">
+          <small>平均反应</small>
+          <output id="reaction">—</output>
+        </div>
+        <div class="score-cell">
+          <small>真实命中率</small>
+          <output id="accuracy">—</output>
+        </div>
+        <div class="score-cell">
+          <small>路径效率</small>
+          <output id="efficiency">—</output>
+        </div>
+        <div class="score-cell">
+          <small>当前连击</small>
+          <output id="combo">0</output>
+        </div>
+      </div>
+
+      <div class="arena-wrap">
+        <div class="trainer-arena" id="trainer-arena" data-state="idle" aria-label="鼠标定位练习区域">
+          <div class="arena-status" id="arena-status">等待开始</div>
+          <div class="arena-note">只认橙色实体圆 · 外圈光晕不算 · 点空计失误</div>
+          <div class="crosshair" id="crosshair" aria-hidden="true"><i></i></div>
+
+          <div class="start-gate" id="start-gate" aria-hidden="true">
+            <span>
+              <strong>ENTER</strong>
+              <small>对准后左键开始</small>
+            </span>
+          </div>
+
+          <div class="trainer-target" id="trainer-target" aria-hidden="true"></div>
+
+          <div class="results-overlay" id="results-overlay" aria-live="polite">
+            <div class="result-grade">
+              <span>
+                <small>SESSION GRADE</small>
+                <strong id="result-grade">—</strong>
+              </span>
+            </div>
+            <div class="result-copy">
+              <h2 id="result-title">本轮定位报告</h2>
+              <p id="result-summary">完成训练后显示结果。</p>
+              <div class="result-stats">
+                <span><small>总命中</small><b id="result-hits">—</b></span>
+                <span><small>真实命中率</small><b id="result-accuracy">—</b></span>
+                <span><small>平均反应</small><b id="result-reaction">—</b></span>
+                <span><small>路径效率</small><b id="result-efficiency">—</b></span>
+                <span><small>每分钟节奏</small><b id="result-pace">—</b></span>
+              </div>
+              <ol class="advice-list" id="advice-list"></ol>
+            </div>
+            <div class="retest-gate" id="retest-gate" aria-hidden="true">
+              <span>
+                <strong>RETEST</strong>
+                <small>左键再练</small>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="method-grid" aria-label="训练原则">
+      <article class="method-card">
+        <b>先快到，再停准</b>
+        <p>不要一路慢慢挪向目标。前 70% 路程快速拉动，接近目标时减速刹停，形成明确的“启动—制动”节奏。</p>
+      </article>
+      <article class="method-card">
+        <b>停准以后再点击</b>
+        <p>每次左键都算一次射击：点中目标记命中，点空记失误。不要在准星仍移动时抢点，真实命中率比单纯追求速度更重要。</p>
+      </article>
+      <article class="method-card">
+        <b>同一设置练三轮</b>
+        <p>单轮成绩容易受随机目标影响。固定 DPI、系统指针速度和模式连续完成三轮，再比较平均反应与路径效率。</p>
+      </article>
+    </section>
+  </main>
+
+  <footer>
+    <span>POINTER ACQUISITION RANGE · 左键定位训练 · 浏览器本地运行</span>
+    <span>建议使用电脑与鼠标 · 本工具不读取硬件 DPI，不上传成绩</span>
+  </footer>
+
+  <script>
+    "use strict";
+
+    // AIM_TRAINER_CORE_START
+    const AIM_TRAINER_CORE = (() => {
+      const MODES = Object.freeze({
+        standard: Object.freeze({
+          label: "精准定位",
+          targetSize: 24,
+          minTravelRatio: .30,
+          reactionWindow: 860,
+          multiplier: 1
+        }),
+        precision: Object.freeze({
+          label: "微目标精确",
+          targetSize: 18,
+          minTravelRatio: .34,
+          reactionWindow: 980,
+          multiplier: 1.15
+        }),
+        micro: Object.freeze({
+          label: "极限点位",
+          targetSize: 12,
+          minTravelRatio: .38,
+          reactionWindow: 1120,
+          multiplier: 1.28
+        })
+      });
+
+      const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+      const average = (values) => values.length
+        ? values.reduce((sum, value) => sum + value, 0) / values.length
+        : 0;
+
+      function isMouseShot(event) {
+        return event.isPrimary === true
+          && event.pointerType === "mouse"
+          && event.button === 0;
+      }
+
+      function isInsideVisibleTarget(point, targetPoint, targetSize) {
+        if (!point || !targetPoint || targetSize <= 0) return false;
+        return Math.hypot(
+          point.x - targetPoint.x,
+          point.y - targetPoint.y
+        ) <= targetSize / 2;
+      }
+
+      function remainingMs(startedAt, now, durationMs) {
+        const elapsed = Math.max(0, now - startedAt);
+        return Math.max(0, durationMs - elapsed);
+      }
+
+      function chooseTarget({
+        width,
+        height,
+        targetSize,
+        previous,
+        minTravelRatio,
+        rng = Math.random
+      }) {
+        const margin = targetSize / 2 + 24;
+        const usableWidth = Math.max(1, width - margin * 2);
+        const usableHeight = Math.max(1, height - margin * 2);
+        const minTravel = Math.min(width, height) * minTravelRatio;
+        let candidate = {
+          x: margin + usableWidth / 2,
+          y: margin + usableHeight / 2
+        };
+
+        for (let attempt = 0; attempt < 24; attempt += 1) {
+          candidate = {
+            x: margin + rng() * usableWidth,
+            y: margin + rng() * usableHeight
+          };
+          if (
+            !previous
+            || Math.hypot(candidate.x - previous.x, candidate.y - previous.y) >= minTravel
+          ) {
+            break;
+          }
+        }
+
+        if (
+          previous
+          && Math.hypot(candidate.x - previous.x, candidate.y - previous.y) < minTravel
+        ) {
+          candidate = {
+            x: previous.x < width / 2 ? width - margin : margin,
+            y: previous.y < height / 2 ? height - margin : margin
+          };
+        }
+
+        return candidate;
+      }
+
+      function computeMetrics({
+        hits,
+        shots,
+        reactions,
+        efficiencies,
+        durationMs,
+        maxCombo,
+        modeMultiplier
+      }) {
+        const averageReaction = Math.round(average(reactions));
+        const pathEfficiency = Math.round(average(efficiencies) * 100);
+        const accuracy = shots ? Math.round(hits / shots * 100) : 0;
+        const hitsPerMinute = Math.round(hits / Math.max(durationMs / 60000, 1 / 60));
+        const reactionBonus = averageReaction
+          ? clamp((920 - averageReaction) / 520, 0, 1) * 520
+          : 0;
+        const score = Math.round(
+          hitsPerMinute * 48 * modeMultiplier
+          + pathEfficiency * 4
+          + accuracy * 6
+          + maxCombo * 18
+          + reactionBonus
+        );
+
+        return {
+          hits,
+          shots,
+          averageReaction,
+          accuracy,
+          pathEfficiency,
+          hitsPerMinute,
+          maxCombo,
+          score
+        };
+      }
+
+      function rankFor(score) {
+        if (score >= 3600) return "S";
+        if (score >= 2800) return "A";
+        if (score >= 2100) return "B";
+        if (score >= 1400) return "C";
+        return "D";
+      }
+
+      function adviceFor(metrics) {
+        const advice = [];
+        if (metrics.hits === 0) {
+          return [
+            "先用“标准定位”熟悉碰撞命中：快速靠近目标，最后一小段减速停准。",
+            "确认准星已进入训练区；鼠标离开区域时计时仍会继续。"
+          ];
+        }
+
+        if (metrics.averageReaction > 760) {
+          advice.push("平均反应偏慢：目光先锁定新目标，再让手启动，不要盯着准星移动。");
+        } else {
+          advice.push("启动速度稳定：继续保持先看目标、再快速拉动鼠标的节奏。");
+        }
+
+        if (metrics.accuracy < 70) {
+          advice.push("真实命中率偏低：准星进入目标内圈后再按左键，先把准确率稳定到 80%。");
+        } else if (metrics.accuracy < 88) {
+          advice.push("点击精度合格：减少边缘擦中和抢点，下一轮争取稳定在 90% 左右。");
+        } else {
+          advice.push("点击精度很稳：保持当前停点节奏，再逐步缩短启动时间。");
+        }
+
+        if (metrics.pathEfficiency < 68) {
+          advice.push("移动路线绕行较多：下一轮刻意走直线，接近目标后再做一次短促微调。");
+        } else if (metrics.pathEfficiency < 82) {
+          advice.push("路径控制合格：减少目标附近的来回摆动，可继续提升停准效率。");
+        } else {
+          advice.push("路径非常直接：保持当前控制，不必用更激进的鼠标速度换取分数。");
+        }
+
+        if (metrics.maxCombo < 4) {
+          advice.push("连续稳定性还有空间：先追求 5 次连续干净命中，再切换到更小目标。");
+        } else {
+          advice.push(`本轮最高 ${metrics.maxCombo} 连击；下一轮保持同一设置，争取把连击延长 2 次。`);
+        }
+        return advice;
+      }
+
+      return Object.freeze({
+        MODES,
+        clamp,
+        isMouseShot,
+        isInsideVisibleTarget,
+        remainingMs,
+        chooseTarget,
+        computeMetrics,
+        rankFor,
+        adviceFor
+      });
+    })();
+    // AIM_TRAINER_CORE_END
+
+    const {
+      MODES,
+      clamp,
+      isMouseShot,
+      isInsideVisibleTarget,
+      remainingMs,
+      chooseTarget,
+      computeMetrics,
+      rankFor,
+      adviceFor
+    } = AIM_TRAINER_CORE;
+
+    const trainerArena = document.querySelector("#trainer-arena");
+    const target = document.querySelector("#trainer-target");
+    const crosshair = document.querySelector("#crosshair");
+    const startGate = document.querySelector("#start-gate");
+    const retestGate = document.querySelector("#retest-gate");
+    const modeButtons = [...document.querySelectorAll("[data-mode]")];
+    const durationButtons = [...document.querySelectorAll("[data-duration]")];
+
+    const state = {
+      phase: "idle",
+      mode: "standard",
+      durationSeconds: 20,
+      startedAt: 0,
+      deadline: 0,
+      targetAt: 0,
+      targetId: 0,
+      armed: false,
+      targetPoint: null,
+      pointer: { x: 0, y: 0 },
+      previousPointer: null,
+      straightDistance: 0,
+      pathDistance: 0,
+      hits: 0,
+      shots: 0,
+      reactions: [],
+      efficiencies: [],
+      combo: 0,
+      maxCombo: 0,
+      frame: 0
+    };
+
+    const $ = (selector) => document.querySelector(selector);
+
+    function pointFromEvent(event) {
+      const rect = trainerArena.getBoundingClientRect();
+      return {
+        x: clamp(event.clientX - rect.left, 0, rect.width),
+        y: clamp(event.clientY - rect.top, 0, rect.height)
+      };
+    }
+
+    function elementCenter(element) {
+      const arenaRect = trainerArena.getBoundingClientRect();
+      const rect = element.getBoundingClientRect();
+      return {
+        x: rect.left - arenaRect.left + rect.width / 2,
+        y: rect.top - arenaRect.top + rect.height / 2,
+        radius: Math.min(rect.width, rect.height) / 2
+      };
+    }
+
+    function withinElement(point, element, scale = 1) {
+      const center = elementCenter(element);
+      return Math.hypot(point.x - center.x, point.y - center.y) <= center.radius * scale;
+    }
+
+    function setPhase(phase, statusText) {
+      state.phase = phase;
+      trainerArena.dataset.state = phase;
+      $("#arena-status").textContent = statusText;
+      $("#session-label").textContent = statusText;
+      const running = phase === "running";
+      [...modeButtons, ...durationButtons].forEach((button) => {
+        button.disabled = running;
+      });
+    }
+
+    function updateLiveMetrics() {
+      const averageReaction = state.reactions.length
+        ? Math.round(state.reactions.reduce((sum, value) => sum + value, 0) / state.reactions.length)
+        : 0;
+      const averageEfficiency = state.efficiencies.length
+        ? Math.round(
+          state.efficiencies.reduce((sum, value) => sum + value, 0)
+          / state.efficiencies.length
+          * 100
+        )
+        : 0;
+      const accuracy = state.shots
+        ? Math.round(state.hits / state.shots * 100)
+        : 0;
+
+      $("#hits").textContent = String(state.hits);
+      $("#reaction").textContent = averageReaction ? `${averageReaction}ms` : "—";
+      $("#accuracy").textContent = state.shots ? `${accuracy}%` : "—";
+      $("#efficiency").textContent = averageEfficiency ? `${averageEfficiency}%` : "—";
+      $("#combo").textContent = String(state.combo);
+    }
+
+    function spawnTarget(now) {
+      const mode = MODES[state.mode];
+      const rect = trainerArena.getBoundingClientRect();
+      const point = chooseTarget({
+        width: rect.width,
+        height: rect.height,
+        targetSize: mode.targetSize,
+        previous: state.pointer,
+        minTravelRatio: mode.minTravelRatio
+      });
+
+      state.targetPoint = point;
+      state.targetAt = now;
+      state.targetId += 1;
+      state.armed = true;
+      state.pathDistance = 0;
+      state.straightDistance = Math.hypot(
+        point.x - state.pointer.x,
+        point.y - state.pointer.y
+      );
+      state.previousPointer = { ...state.pointer };
+
+      target.classList.remove("active");
+      target.style.left = `${point.x}px`;
+      target.style.top = `${point.y}px`;
+      target.getBoundingClientRect();
+      target.classList.add("active");
+    }
+
+    function addHitBurst(point) {
+      const burst = document.createElement("i");
+      burst.className = "hit-burst";
+      burst.style.left = `${point.x}px`;
+      burst.style.top = `${point.y}px`;
+      trainerArena.appendChild(burst);
+      setTimeout(() => burst.remove(), 460);
+    }
+
+    function registerHit(now, targetId) {
+      if (!state.armed || targetId !== state.targetId) return;
+      state.armed = false;
+      const mode = MODES[state.mode];
+      const reaction = now - state.targetAt;
+      const efficiency = clamp(
+        state.straightDistance / Math.max(state.straightDistance, state.pathDistance),
+        0,
+        1
+      );
+
+      state.hits += 1;
+      state.reactions.push(reaction);
+      state.efficiencies.push(efficiency);
+      state.combo = reaction <= mode.reactionWindow && efficiency >= .68
+        ? state.combo + 1
+        : 0;
+      state.maxCombo = Math.max(state.maxCombo, state.combo);
+
+      addHitBurst(state.targetPoint);
+      updateLiveMetrics();
+      spawnTarget(now);
+    }
+
+    function finishSession() {
+      if (state.phase !== "running") return;
+      cancelAnimationFrame(state.frame);
+      target.classList.remove("active");
+      $("#timer").textContent = "0.0";
+
+      const durationMs = state.durationSeconds * 1000;
+      const metrics = computeMetrics({
+        hits: state.hits,
+        shots: state.shots,
+        reactions: state.reactions,
+        efficiencies: state.efficiencies,
+        durationMs,
+        maxCombo: state.maxCombo,
+        modeMultiplier: MODES[state.mode].multiplier
+      });
+      const rank = rankFor(metrics.score);
+
+      $("#result-grade").textContent = rank;
+      $("#result-hits").textContent = String(metrics.hits);
+      $("#result-accuracy").textContent = `${metrics.accuracy}%`;
+      $("#result-reaction").textContent = metrics.averageReaction
+        ? `${metrics.averageReaction}ms`
+        : "—";
+      $("#result-efficiency").textContent = `${metrics.pathEfficiency}%`;
+      $("#result-pace").textContent = `${metrics.hitsPerMinute}/min`;
+      $("#result-title").textContent = `${MODES[state.mode].label} · ${rank} 级`;
+      $("#result-summary").textContent =
+        `本轮 ${metrics.shots} 次左键中命中 ${metrics.hits} 次，得分 ${metrics.score}，最高连续稳定命中 ${metrics.maxCombo} 次。`
+        + "成绩用于比较你自己的多轮趋势，不用于跨设备排名。";
+      $("#advice-list").innerHTML = adviceFor(metrics)
+        .map((item, index) => (
+          `<li><b>${String(index + 1).padStart(2, "0")}</b><span>${item}</span></li>`
+        ))
+        .join("");
+      state.armed = false;
+      setPhase("complete", "训练完成 · 左键点右下角重测环可再练");
+    }
+
+    function animate(now) {
+      if (state.phase !== "running") return;
+      const durationMs = state.durationSeconds * 1000;
+      const left = remainingMs(state.startedAt, now, durationMs);
+      $("#timer").textContent = (left / 1000).toFixed(1);
+      if (left <= 0) {
+        finishSession();
+        return;
+      }
+      state.frame = requestAnimationFrame(animate);
+    }
+
+    function startSession(now) {
+      if (state.phase !== "idle") return;
+      state.startedAt = now;
+      state.deadline = now + state.durationSeconds * 1000;
+      state.hits = 0;
+      state.shots = 0;
+      state.reactions = [];
+      state.efficiencies = [];
+      state.combo = 0;
+      state.maxCombo = 0;
+      updateLiveMetrics();
+      setPhase("running", `${MODES[state.mode].label}进行中`);
+      spawnTarget(now);
+      state.frame = requestAnimationFrame(animate);
+    }
+
+    function resetSession() {
+      cancelAnimationFrame(state.frame);
+      state.startedAt = 0;
+      state.deadline = 0;
+      state.targetAt = 0;
+      state.targetId = 0;
+      state.armed = false;
+      state.targetPoint = null;
+      state.previousPointer = null;
+      state.hits = 0;
+      state.shots = 0;
+      state.reactions = [];
+      state.efficiencies = [];
+      state.combo = 0;
+      state.maxCombo = 0;
+      target.classList.remove("active");
+      $("#timer").textContent = `${state.durationSeconds}.0`;
+      updateLiveMetrics();
+      setPhase("idle", "等待准星进入启动环");
+    }
+
+    function selectMode(modeKey) {
+      if (!MODES[modeKey] || state.phase === "running") return;
+      state.mode = modeKey;
+      const mode = MODES[modeKey];
+      document.documentElement.style.setProperty("--target-size", `${mode.targetSize}px`);
+      $("#mode-readout").textContent = `${mode.label} · ${mode.targetSize}PX`;
+      modeButtons.forEach((button) => {
+        button.setAttribute("aria-pressed", String(button.dataset.mode === modeKey));
+      });
+      resetSession();
+    }
+
+    function selectDuration(seconds) {
+      if (state.phase === "running") return;
+      state.durationSeconds = seconds;
+      $("#duration-readout").textContent = `${seconds} 秒`;
+      durationButtons.forEach((button) => {
+        button.setAttribute(
+          "aria-pressed",
+          String(Number(button.dataset.duration) === seconds)
+        );
+      });
+      resetSession();
+    }
+
+    function handleShot(event) {
+      if (!isMouseShot(event)) return;
+      event.preventDefault();
+
+      const now = performance.now();
+      const point = pointFromEvent(event);
+      state.pointer = point;
+      crosshair.style.setProperty("--x", `${point.x}px`);
+      crosshair.style.setProperty("--y", `${point.y}px`);
+
+      if (state.phase === "idle") {
+        if (withinElement(point, startGate, .9)) startSession(now);
+        return;
+      }
+
+      if (state.phase === "complete") {
+        if (withinElement(point, retestGate, .92)) resetSession();
+        return;
+      }
+
+      if (state.phase !== "running") return;
+      if (now >= state.deadline) {
+        finishSession();
+        return;
+      }
+
+      if (state.previousPointer) {
+        state.pathDistance += Math.hypot(
+          point.x - state.previousPointer.x,
+          point.y - state.previousPointer.y
+        );
+      }
+      state.previousPointer = { ...point };
+      state.shots += 1;
+
+      const targetId = state.targetId;
+      const hit = state.armed
+        && isInsideVisibleTarget(
+          point,
+          state.targetPoint,
+          MODES[state.mode].targetSize
+        );
+
+      if (hit) {
+        registerHit(now, targetId);
+      } else {
+        state.combo = 0;
+        updateLiveMetrics();
+      }
+    }
+
+    modeButtons.forEach((button) => {
+      button.addEventListener("click", () => selectMode(button.dataset.mode));
+    });
+
+    durationButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        selectDuration(Number(button.dataset.duration));
+      });
+    });
+
+    trainerArena.addEventListener("pointerenter", () => {
+      trainerArena.classList.add("pointer-inside");
+      if (state.phase === "running") {
+        $("#arena-status").textContent = `${MODES[state.mode].label}进行中`;
+      }
+    });
+
+    trainerArena.addEventListener("pointerleave", () => {
+      trainerArena.classList.remove("pointer-inside");
+      state.previousPointer = null;
+      if (state.phase === "running") {
+        $("#arena-status").textContent = "准星已离开 · 计时继续";
+      }
+    });
+
+    trainerArena.addEventListener("pointerdown", handleShot);
+
+    trainerArena.addEventListener("pointermove", (event) => {
+      const point = pointFromEvent(event);
+      state.pointer = point;
+      crosshair.style.setProperty("--x", `${point.x}px`);
+      crosshair.style.setProperty("--y", `${point.y}px`);
+
+      if (state.phase === "running" && state.previousPointer) {
+        state.pathDistance += Math.hypot(
+          point.x - state.previousPointer.x,
+          point.y - state.previousPointer.y
+        );
+      }
+
+      if (state.phase === "running") {
+        state.previousPointer = { ...point };
+      }
+    });
+
+    selectMode("standard");
+    selectDuration(20);
+
+    window.__AIM_TRAINER__ = {
+      version: "1.0.0",
+      core: AIM_TRAINER_CORE,
+      snapshot() {
+        return {
+          phase: state.phase,
+          mode: state.mode,
+          durationSeconds: state.durationSeconds,
+          hits: state.hits,
+          shots: state.shots,
+          accuracy: state.shots ? Math.round(state.hits / state.shots * 100) : 0,
+          targetId: state.targetId,
+          armed: state.armed,
+          combo: state.combo,
+          maxCombo: state.maxCombo
+        };
+      }
+    };
+  </script>
+</body>
+</html>

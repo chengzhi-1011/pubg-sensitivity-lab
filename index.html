@@ -212,6 +212,43 @@
       color: var(--ink);
     }
 
+    .hero-actions {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      margin-top: 22px;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .practice-cta {
+      display: inline-flex;
+      min-height: 48px;
+      padding: 11px 16px;
+      gap: 11px;
+      align-items: center;
+      border: 1px solid var(--ink);
+      border-radius: 13px;
+      background: var(--signal);
+      box-shadow: 4px 4px 0 var(--ink);
+      font-size: 12px;
+      font-weight: 900;
+      text-decoration: none;
+      transition: .18s ease;
+    }
+
+    .practice-cta small {
+      color: rgba(22, 26, 25, .58);
+      font-size: 9px;
+      font-weight: 800;
+    }
+
+    .practice-cta:hover {
+      background: #ffd064;
+      transform: translate(-2px, -2px);
+    }
+
     .hero-readout {
       position: relative;
       z-index: 2;
@@ -1575,6 +1612,12 @@
           用 <strong>3 项免点击鼠标测试</strong>，把你的追踪、定位与转身习惯换算成一套可直接填入
           PUBG PC 的灵敏度。先填鼠标画像，再把准星移入测试环。
         </p>
+        <div class="hero-actions">
+          <a class="practice-cta" href="./aim-trainer.html">
+            <span>进入精准定位练习场 →</span>
+            <small>12—24PX · 左键命中</small>
+          </a>
+        </div>
       </div>
 
       <aside class="hero-readout" aria-label="当前转身距离估算">
