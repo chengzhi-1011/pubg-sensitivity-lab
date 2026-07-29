@@ -69,6 +69,28 @@ test("hit testing uses exactly the visible circle with no hidden tolerance", () 
   );
 });
 
+test("arena coordinates exclude the visible border from their origin", () => {
+  const point = core.toArenaPoint(
+    { x: 213.5, y: 327.25 },
+    {
+      left: 100,
+      top: 200,
+      clientLeft: 1,
+      clientTop: 1,
+      clientWidth: 900,
+      clientHeight: 520,
+    },
+  );
+  assert.equal(point.x, 112.5);
+  assert.equal(point.y, 126.25);
+});
+
+test("a shot at or after the deadline cannot be scored", () => {
+  assert.equal(core.hasSessionExpired(9_999.99, 10_000), false);
+  assert.equal(core.hasSessionExpired(10_000, 10_000), true);
+  assert.equal(core.hasSessionExpired(10_000.01, 10_000), true);
+});
+
 test("session metrics report reaction, path efficiency, pace and score", () => {
   const metrics = core.computeMetrics({
     hits: 12,
@@ -126,6 +148,12 @@ test("practice page requires click-to-hit and exposes required readouts", () => 
   assert.match(html, /function handleShot/);
   assert.match(html, /state\.shots \+= 1/);
   assert.match(html, /requestAnimationFrame/);
+  assert.doesNotMatch(html, /animation:\s*target-in/);
+  assert.match(
+    html,
+    /pointermove", \(event\) => \{\s*if \(event\.pointerType !== "mouse"\) return;/,
+  );
+  assert.match(html, /touch-action:\s*pan-y/);
 });
 
 test("sensitivity page links to the positioning trainer", () => {

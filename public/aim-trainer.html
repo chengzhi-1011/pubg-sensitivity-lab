@@ -429,8 +429,9 @@
       position: relative;
       min-height: clamp(450px, 60vh, 690px);
       overflow: hidden;
-      border: 1px solid rgba(255, 255, 255, .18);
+      border: 0;
       border-radius: 18px;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .18);
       color: var(--white);
       background:
         linear-gradient(rgba(255, 255, 255, .055) 1px, transparent 1px),
@@ -438,7 +439,7 @@
         radial-gradient(circle at center, rgba(49, 86, 238, .16), transparent 48%),
         #0e1413;
       background-size: 42px 42px, 42px 42px, auto, auto;
-      touch-action: none;
+      touch-action: pan-y;
       user-select: none;
     }
 
@@ -627,7 +628,7 @@
         0 0 13px rgba(255, 90, 54, .32);
       opacity: 0;
       pointer-events: none;
-      transform: translate(-50%, -50%) scale(.72);
+      transform: translate(-50%, -50%);
     }
 
     .trainer-target::before {
@@ -641,7 +642,6 @@
 
     .trainer-target.active {
       opacity: 1;
-      animation: target-in .18s cubic-bezier(.2, .8, .2, 1) both;
     }
 
     .hit-burst {
@@ -841,17 +841,6 @@
       color: var(--muted);
       font-size: 10px;
       line-height: 1.6;
-    }
-
-    @keyframes target-in {
-      from {
-        opacity: 0;
-        transform: translate(-50%, -50%) scale(.55);
-      }
-      to {
-        opacity: 1;
-        transform: translate(-50%, -50%) scale(1);
-      }
     }
 
     @keyframes hit-burst {
@@ -1252,6 +1241,25 @@
         ) <= targetSize / 2;
       }
 
+      function toArenaPoint(clientPoint, arenaFrame) {
+        return {
+          x: clamp(
+            clientPoint.x - arenaFrame.left - arenaFrame.clientLeft,
+            0,
+            arenaFrame.clientWidth
+          ),
+          y: clamp(
+            clientPoint.y - arenaFrame.top - arenaFrame.clientTop,
+            0,
+            arenaFrame.clientHeight
+          )
+        };
+      }
+
+      function hasSessionExpired(now, deadline) {
+        return now >= deadline;
+      }
+
       function remainingMs(startedAt, now, durationMs) {
         const elapsed = Math.max(0, now - startedAt);
         return Math.max(0, durationMs - elapsed);
@@ -1388,6 +1396,8 @@
         clamp,
         isMouseShot,
         isInsideVisibleTarget,
+        toArenaPoint,
+        hasSessionExpired,
         remainingMs,
         chooseTarget,
         computeMetrics,
@@ -1402,6 +1412,8 @@
       clamp,
       isMouseShot,
       isInsideVisibleTarget,
+      toArenaPoint,
+      hasSessionExpired,
       remainingMs,
       chooseTarget,
       computeMetrics,
@@ -1444,18 +1456,25 @@
 
     function pointFromEvent(event) {
       const rect = trainerArena.getBoundingClientRect();
-      return {
-        x: clamp(event.clientX - rect.left, 0, rect.width),
-        y: clamp(event.clientY - rect.top, 0, rect.height)
-      };
+      return toArenaPoint(
+        { x: event.clientX, y: event.clientY },
+        {
+          left: rect.left,
+          top: rect.top,
+          clientLeft: trainerArena.clientLeft,
+          clientTop: trainerArena.clientTop,
+          clientWidth: trainerArena.clientWidth,
+          clientHeight: trainerArena.clientHeight
+        }
+      );
     }
 
     function elementCenter(element) {
       const arenaRect = trainerArena.getBoundingClientRect();
       const rect = element.getBoundingClientRect();
       return {
-        x: rect.left - arenaRect.left + rect.width / 2,
-        y: rect.top - arenaRect.top + rect.height / 2,
+        x: rect.left - arenaRect.left - trainerArena.clientLeft + rect.width / 2,
+        y: rect.top - arenaRect.top - trainerArena.clientTop + rect.height / 2,
         radius: Math.min(rect.width, rect.height) / 2
       };
     }
@@ -1500,10 +1519,9 @@
 
     function spawnTarget(now) {
       const mode = MODES[state.mode];
-      const rect = trainerArena.getBoundingClientRect();
       const point = chooseTarget({
-        width: rect.width,
-        height: rect.height,
+        width: trainerArena.clientWidth,
+        height: trainerArena.clientHeight,
         targetSize: mode.targetSize,
         previous: state.pointer,
         minTravelRatio: mode.minTravelRatio
@@ -1523,7 +1541,6 @@
       target.classList.remove("active");
       target.style.left = `${point.x}px`;
       target.style.top = `${point.y}px`;
-      target.getBoundingClientRect();
       target.classList.add("active");
     }
 
@@ -1694,7 +1711,7 @@
       }
 
       if (state.phase !== "running") return;
-      if (now >= state.deadline) {
+      if (hasSessionExpired(now, state.deadline)) {
         finishSession();
         return;
       }
@@ -1734,14 +1751,16 @@
       });
     });
 
-    trainerArena.addEventListener("pointerenter", () => {
+    trainerArena.addEventListener("pointerenter", (event) => {
+      if (event.pointerType !== "mouse") return;
       trainerArena.classList.add("pointer-inside");
       if (state.phase === "running") {
         $("#arena-status").textContent = `${MODES[state.mode].label}进行中`;
       }
     });
 
-    trainerArena.addEventListener("pointerleave", () => {
+    trainerArena.addEventListener("pointerleave", (event) => {
+      if (event.pointerType !== "mouse") return;
       trainerArena.classList.remove("pointer-inside");
       state.previousPointer = null;
       if (state.phase === "running") {
@@ -1752,6 +1771,7 @@
     trainerArena.addEventListener("pointerdown", handleShot);
 
     trainerArena.addEventListener("pointermove", (event) => {
+      if (event.pointerType !== "mouse") return;
       const point = pointFromEvent(event);
       state.pointer = point;
       crosshair.style.setProperty("--x", `${point.x}px`);
@@ -1773,7 +1793,7 @@
     selectDuration(20);
 
     window.__AIM_TRAINER__ = {
-      version: "1.0.0",
+      version: "1.0.1",
       core: AIM_TRAINER_CORE,
       snapshot() {
         return {
@@ -1785,6 +1805,8 @@
           accuracy: state.shots ? Math.round(state.hits / state.shots * 100) : 0,
           targetId: state.targetId,
           armed: state.armed,
+          targetPoint: state.targetPoint ? { ...state.targetPoint } : null,
+          targetSize: MODES[state.mode].targetSize,
           combo: state.combo,
           maxCombo: state.maxCombo
         };
