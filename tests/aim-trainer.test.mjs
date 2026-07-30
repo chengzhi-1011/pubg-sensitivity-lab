@@ -49,6 +49,64 @@ test("every training mode uses a strict small target", () => {
   assert.ok(sizes.every((size) => size <= 24));
 });
 
+test("five complementary drills are available without changing hitbox size", () => {
+  assert.deepEqual(
+    Object.keys(core.DRILLS).sort(),
+    ["center", "flash", "flick", "micro", "random"],
+  );
+  assert.equal(core.DRILLS.flick.minTravelRatio, 0.58);
+  assert.equal(core.DRILLS.micro.strategy, "micro");
+  assert.equal(core.DRILLS.center.strategy, "center");
+  assert.equal(core.DRILLS.flash.strategy, "flash");
+});
+
+test("micro-adjust targets stay nearby and inside the arena", () => {
+  const target = core.chooseNearbyTarget({
+    width: 900,
+    height: 520,
+    targetSize: 12,
+    previous: { x: 450, y: 260 },
+    distance: 54,
+    rng: () => 0,
+  });
+  assert.equal(target.x, 504);
+  assert.equal(target.y, 260);
+  assert.equal(Math.hypot(target.x - 450, target.y - 260), 54);
+  assert.ok(target.x >= 30 && target.x <= 870);
+});
+
+test("eight-way drill alternates an outer target with the exact center", () => {
+  const settings = {
+    width: 900,
+    height: 520,
+    targetSize: 18,
+    radiusRatio: 0.34,
+  };
+  const firstOuter = core.choosePatternTarget({ ...settings, step: 0 });
+  const firstCenter = core.choosePatternTarget({ ...settings, step: 1 });
+  const diagonalOuter = core.choosePatternTarget({ ...settings, step: 2 });
+  assert.ok(firstOuter.x > 450);
+  assert.equal(firstOuter.y, 260);
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(firstCenter)),
+    { x: 450, y: 260 },
+  );
+  assert.ok(diagonalOuter.x > 450 && diagonalOuter.y > 260);
+});
+
+test("flash deadlines and micro ladder distances scale with difficulty", () => {
+  assert.equal(core.targetLifetimeFor("random", "standard"), 0);
+  assert.equal(core.targetLifetimeFor("flash", "standard"), 1050);
+  assert.equal(core.targetLifetimeFor("flash", "precision"), 1300);
+  assert.equal(core.targetLifetimeFor("flash", "micro"), 1600);
+  assert.equal(core.hasTargetExpired(1049.99, 1050), false);
+  assert.equal(core.hasTargetExpired(1050, 1050), true);
+  assert.deepEqual(
+    [0, 1, 2, 3].map((level) => core.microDistanceFor(12, level)),
+    [34, 54, 78, 106],
+  );
+});
+
 test("hit testing uses exactly the visible circle with no hidden tolerance", () => {
   const center = { x: 100, y: 100 };
   assert.equal(
@@ -139,6 +197,9 @@ test("practice page requires click-to-hit and exposes required readouts", () => 
     "combo",
     "results-overlay",
     "retest-gate",
+    "drill-readout",
+    "drill-choices",
+    "arena-note",
   ]) {
     assert.match(html, new RegExp(`id="${id}"`));
   }
@@ -154,6 +215,11 @@ test("practice page requires click-to-hit and exposes required readouts", () => 
     /pointermove", \(event\) => \{\s*if \(event\.pointerType !== "mouse"\) return;/,
   );
   assert.match(html, /touch-action:\s*pan-y/);
+  assert.match(html, /body\s*\{[\s\S]*?min-width:\s*0;/);
+  assert.equal((html.match(/data-drill="/g) || []).length, 5);
+  assert.match(html, /hasTargetExpired\(now, state\.targetDeadline\)/);
+  assert.match(html, /window\.addEventListener\("resize"/);
+  assert.match(html, /state\.pathValid = false/);
 });
 
 test("sensitivity page links to the positioning trainer", () => {
