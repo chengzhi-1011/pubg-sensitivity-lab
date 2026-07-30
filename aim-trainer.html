@@ -35,7 +35,7 @@
     }
 
     body {
-      min-width: 320px;
+      min-width: 0;
       margin: 0;
       color: var(--ink);
       background:
@@ -275,7 +275,7 @@
       display: grid;
       margin-top: 24px;
       padding: 18px;
-      grid-template-columns: minmax(0, 1.25fr) minmax(300px, .75fr);
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 18px;
       border: 1px solid var(--ink);
       border-radius: 22px;
@@ -306,6 +306,18 @@
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 7px;
+    }
+
+    .drill-choice-block {
+      grid-column: 1 / -1;
+    }
+
+    .drill-row {
+      grid-template-columns: repeat(5, 1fr);
+    }
+
+    .drill-button {
+      min-height: 76px;
     }
 
     .choice-button {
@@ -656,6 +668,10 @@
       animation: hit-burst .42s ease-out both;
     }
 
+    .hit-burst.miss {
+      border-color: var(--orange);
+    }
+
     .results-overlay {
       position: absolute;
       inset: 0;
@@ -831,6 +847,35 @@
       line-height: 1.7;
     }
 
+    .routine-strip {
+      display: grid;
+      margin: 12px 0 24px;
+      padding: 18px 22px;
+      grid-template-columns: auto 1fr;
+      gap: 18px;
+      align-items: center;
+      border: 1px solid var(--ink);
+      border-radius: 18px;
+      color: var(--white);
+      background:
+        linear-gradient(90deg, rgba(255, 90, 54, .18), transparent 34%),
+        var(--ink);
+    }
+
+    .routine-strip b {
+      color: var(--orange);
+      font-family: var(--display);
+      font-size: 19px;
+      letter-spacing: .04em;
+    }
+
+    .routine-strip p {
+      margin: 0;
+      color: rgba(255, 255, 255, .66);
+      font-size: 10px;
+      line-height: 1.7;
+    }
+
     footer {
       display: flex;
       width: min(1440px, calc(100% - 34px));
@@ -874,6 +919,10 @@
         grid-template-columns: 1fr;
       }
 
+      .drill-choice-block {
+        grid-column: auto;
+      }
+
       .score-ribbon {
         grid-template-columns: repeat(3, 1fr);
       }
@@ -914,6 +963,10 @@
 
       .choice-row {
         grid-template-columns: 1fr;
+      }
+
+      .drill-row {
+        grid-template-columns: repeat(2, 1fr);
       }
 
       .choice-button {
@@ -964,6 +1017,11 @@
         grid-template-columns: 1fr;
       }
 
+      .routine-strip {
+        grid-template-columns: 1fr;
+        gap: 5px;
+      }
+
       footer {
         display: block;
         width: min(100% - 22px, 1440px);
@@ -999,6 +1057,10 @@
       .arena-note {
         display: none;
       }
+
+      .drill-row {
+        grid-template-columns: 1fr;
+      }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -1033,7 +1095,7 @@
         <p class="eyebrow">Acquire / Stop / Reset</p>
         <h1 id="page-title">鼠标<span class="highlight">定位</span><br>练习场</h1>
         <p class="hero-copy">
-          把准星移进训练区，对准中央启动环并按下左键；随后快速对准随机目标。
+          先选择专项、目标尺寸与训练时长，再把准星移进训练区，对准中央启动环并按下左键。
           <strong>只有左键落在橙色实体圆内才算命中，外圈光晕不参与判定。</strong>点空会计一次失误，页面会记录反应速度、真实命中率、移动路径和连续稳定性。
         </p>
       </div>
@@ -1052,9 +1114,38 @@
     </section>
 
     <section class="setup-panel" aria-label="练习设置">
+      <div class="choice-block drill-choice-block">
+        <div class="choice-label">
+          <span>01 / Drill focus</span>
+          <b id="drill-readout">随机定位 · 综合基准</b>
+        </div>
+        <div class="choice-row drill-row" id="drill-choices">
+          <button class="choice-button drill-button" type="button" data-drill="random" aria-pressed="true">
+            <strong>随机定位</strong>
+            <small>综合热身 · 目标不可预测</small>
+          </button>
+          <button class="choice-button drill-button" type="button" data-drill="flick" aria-pressed="false">
+            <strong>远距甩枪</strong>
+            <small>大幅拉动 · 练启动与刹停</small>
+          </button>
+          <button class="choice-button drill-button" type="button" data-drill="micro" aria-pressed="false">
+            <strong>微调阶梯</strong>
+            <small>近距递进 · 练最后一小段</small>
+          </button>
+          <button class="choice-button drill-button" type="button" data-drill="center" aria-pressed="false">
+            <strong>八向回中</strong>
+            <small>中心往返 · 练方向一致性</small>
+          </button>
+          <button class="choice-button drill-button" type="button" data-drill="flash" aria-pressed="false">
+            <strong>限时闪现</strong>
+            <small>超时即失误 · 练快速停准</small>
+          </button>
+        </div>
+      </div>
+
       <div class="choice-block">
         <div class="choice-label">
-          <span>01 / Training mode</span>
+          <span>02 / Target size</span>
           <b id="mode-readout">精准定位 · 24PX</b>
         </div>
         <div class="choice-row" id="mode-choices">
@@ -1075,7 +1166,7 @@
 
       <div class="choice-block">
         <div class="choice-label">
-          <span>02 / Session length</span>
+          <span>03 / Session length</span>
           <b id="duration-readout">20 秒</b>
         </div>
         <div class="choice-row" id="duration-choices">
@@ -1130,7 +1221,7 @@
       <div class="arena-wrap">
         <div class="trainer-arena" id="trainer-arena" data-state="idle" aria-label="鼠标定位练习区域">
           <div class="arena-status" id="arena-status">等待开始</div>
-          <div class="arena-note">只认橙色实体圆 · 外圈光晕不算 · 点空计失误</div>
+          <div class="arena-note" id="arena-note">随机目标 · 只认橙色实体圆 · 点空计失误</div>
           <div class="crosshair" id="crosshair" aria-hidden="true"><i></i></div>
 
           <div class="start-gate" id="start-gate" aria-hidden="true">
@@ -1183,8 +1274,13 @@
       </article>
       <article class="method-card">
         <b>同一设置练三轮</b>
-        <p>单轮成绩容易受随机目标影响。固定 DPI、系统指针速度和模式连续完成三轮，再比较平均反应与路径效率。</p>
+        <p>单轮成绩容易受目标分布影响。固定 DPI、系统指针速度、专项和目标尺寸连续完成三轮，再比较平均反应与路径效率。</p>
       </article>
+    </section>
+
+    <section class="routine-strip" aria-label="推荐训练路线">
+      <b>12 MIN / 推荐训练路线</b>
+      <p>每轮 60 秒：随机定位 2 轮 → 微调阶梯 3 轮 → 八向回中 2 轮 → 远距甩枪 2 轮 → 限时闪现 1 轮，组间休息约 15 秒。先保证 85% 以上命中率，再追求更快反应。</p>
     </section>
   </main>
 
@@ -1220,6 +1316,58 @@
           reactionWindow: 1120,
           multiplier: 1.28
         })
+      });
+
+      const DRILLS = Object.freeze({
+        random: Object.freeze({
+          label: "随机定位",
+          descriptor: "综合基准",
+          strategy: "random",
+          multiplier: 1,
+          note: "随机目标 · 综合评估启动、停准与点击纪律",
+          advice: "综合训练要点：目光先到目标，手再启动；接近后减速，停稳再点。"
+        }),
+        flick: Object.freeze({
+          label: "远距甩枪",
+          descriptor: "大幅启动与刹停",
+          strategy: "random",
+          minTravelRatio: .58,
+          multiplier: 1.08,
+          note: "新目标保持远距离 · 练大幅启动与末端刹停",
+          advice: "远距甩枪要点：前段果断加速，最后约 20% 路程开始制动，避免冲过目标再拉回。"
+        }),
+        micro: Object.freeze({
+          label: "微调阶梯",
+          descriptor: "近距递进停点",
+          strategy: "micro",
+          multiplier: 1.1,
+          note: "每 4 次干净命中升一级 · 失误会退一级",
+          advice: "微调阶梯要点：手腕保持放松，用一次短促修正到位，避免目标附近反复左右摆动。"
+        }),
+        center: Object.freeze({
+          label: "八向回中",
+          descriptor: "中心往返一致性",
+          strategy: "center",
+          radiusRatio: .34,
+          multiplier: 1.08,
+          note: "中心与八个方向交替 · 比较不同方向的一致性",
+          advice: "八向回中要点：外围点中后立刻把视线放回中心，让去程与回程保持同样直接。"
+        }),
+        flash: Object.freeze({
+          label: "限时闪现",
+          descriptor: "快速发现与停准",
+          strategy: "flash",
+          minTravelRatio: .24,
+          multiplier: 1.16,
+          note: "目标超时或点空都会换位 · 每个目标只有一次机会",
+          advice: "限时闪现要点：先识别目标位置再启动，不要靠连续乱点弥补慢发现。"
+        })
+      });
+
+      const FLASH_LIFETIMES = Object.freeze({
+        standard: 1050,
+        precision: 1300,
+        micro: 1600
       });
 
       const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
@@ -1308,6 +1456,82 @@
         return candidate;
       }
 
+      function chooseNearbyTarget({
+        width,
+        height,
+        targetSize,
+        previous,
+        distance,
+        rng = Math.random
+      }) {
+        const margin = targetSize / 2 + 24;
+        const origin = previous || { x: width / 2, y: height / 2 };
+
+        for (let attempt = 0; attempt < 32; attempt += 1) {
+          const angle = rng() * Math.PI * 2;
+          const candidate = {
+            x: origin.x + Math.cos(angle) * distance,
+            y: origin.y + Math.sin(angle) * distance
+          };
+          if (
+            candidate.x >= margin
+            && candidate.x <= width - margin
+            && candidate.y >= margin
+            && candidate.y <= height - margin
+          ) {
+            return candidate;
+          }
+        }
+
+        const towardCenter = Math.atan2(height / 2 - origin.y, width / 2 - origin.x);
+        return {
+          x: clamp(origin.x + Math.cos(towardCenter) * distance, margin, width - margin),
+          y: clamp(origin.y + Math.sin(towardCenter) * distance, margin, height - margin)
+        };
+      }
+
+      function choosePatternTarget({
+        width,
+        height,
+        targetSize,
+        step,
+        radiusRatio
+      }) {
+        const margin = targetSize / 2 + 24;
+        const center = { x: width / 2, y: height / 2 };
+        if (step % 2 === 1) return center;
+
+        const directions = [
+          [1, 0],
+          [Math.SQRT1_2, Math.SQRT1_2],
+          [0, 1],
+          [-Math.SQRT1_2, Math.SQRT1_2],
+          [-1, 0],
+          [-Math.SQRT1_2, -Math.SQRT1_2],
+          [0, -1],
+          [Math.SQRT1_2, -Math.SQRT1_2]
+        ];
+        const direction = directions[Math.floor(step / 2) % directions.length];
+        const radius = Math.min(width, height) * radiusRatio;
+        return {
+          x: clamp(center.x + direction[0] * radius, margin, width - margin),
+          y: clamp(center.y + direction[1] * radius, margin, height - margin)
+        };
+      }
+
+      function targetLifetimeFor(drillKey, modeKey) {
+        return drillKey === "flash" ? FLASH_LIFETIMES[modeKey] || 0 : 0;
+      }
+
+      function microDistanceFor(targetSize, level) {
+        const offsets = [22, 42, 66, 94];
+        return targetSize + offsets[clamp(level, 0, offsets.length - 1)];
+      }
+
+      function hasTargetExpired(now, targetDeadline) {
+        return targetDeadline > 0 && now >= targetDeadline;
+      }
+
       function computeMetrics({
         hits,
         shots,
@@ -1352,11 +1576,13 @@
         return "D";
       }
 
-      function adviceFor(metrics) {
-        const advice = [];
+      function adviceFor(metrics, drillKey = "random") {
+        const drill = DRILLS[drillKey] || DRILLS.random;
+        const advice = drillKey === "random" ? [] : [drill.advice];
         if (metrics.hits === 0) {
           return [
-            "先用“标准定位”熟悉碰撞命中：快速靠近目标，最后一小段减速停准。",
+            drill.advice,
+            "先用 24PX 目标熟悉左键命中：快速靠近目标，最后一小段减速停准。",
             "确认准星已进入训练区；鼠标离开区域时计时仍会继续。"
           ];
         }
@@ -1388,11 +1614,12 @@
         } else {
           advice.push(`本轮最高 ${metrics.maxCombo} 连击；下一轮保持同一设置，争取把连击延长 2 次。`);
         }
-        return advice;
+        return advice.slice(0, 4);
       }
 
       return Object.freeze({
         MODES,
+        DRILLS,
         clamp,
         isMouseShot,
         isInsideVisibleTarget,
@@ -1400,6 +1627,11 @@
         hasSessionExpired,
         remainingMs,
         chooseTarget,
+        chooseNearbyTarget,
+        choosePatternTarget,
+        targetLifetimeFor,
+        microDistanceFor,
+        hasTargetExpired,
         computeMetrics,
         rankFor,
         adviceFor
@@ -1409,6 +1641,7 @@
 
     const {
       MODES,
+      DRILLS,
       clamp,
       isMouseShot,
       isInsideVisibleTarget,
@@ -1416,6 +1649,11 @@
       hasSessionExpired,
       remainingMs,
       chooseTarget,
+      chooseNearbyTarget,
+      choosePatternTarget,
+      targetLifetimeFor,
+      microDistanceFor,
+      hasTargetExpired,
       computeMetrics,
       rankFor,
       adviceFor
@@ -1426,16 +1664,19 @@
     const crosshair = document.querySelector("#crosshair");
     const startGate = document.querySelector("#start-gate");
     const retestGate = document.querySelector("#retest-gate");
+    const drillButtons = [...document.querySelectorAll("[data-drill]")];
     const modeButtons = [...document.querySelectorAll("[data-mode]")];
     const durationButtons = [...document.querySelectorAll("[data-duration]")];
 
     const state = {
       phase: "idle",
+      drill: "random",
       mode: "standard",
       durationSeconds: 20,
       startedAt: 0,
       deadline: 0,
       targetAt: 0,
+      targetDeadline: 0,
       targetId: 0,
       armed: false,
       targetPoint: null,
@@ -1449,6 +1690,11 @@
       efficiencies: [],
       combo: 0,
       maxCombo: 0,
+      expiredTargets: 0,
+      patternStep: 0,
+      microLevel: 0,
+      microCleanHits: 0,
+      pathValid: true,
       frame: 0
     };
 
@@ -1490,7 +1736,7 @@
       $("#arena-status").textContent = statusText;
       $("#session-label").textContent = statusText;
       const running = phase === "running";
-      [...modeButtons, ...durationButtons].forEach((button) => {
+      [...drillButtons, ...modeButtons, ...durationButtons].forEach((button) => {
         button.disabled = running;
       });
     }
@@ -1519,19 +1765,43 @@
 
     function spawnTarget(now) {
       const mode = MODES[state.mode];
-      const point = chooseTarget({
+      const drill = DRILLS[state.drill];
+      const dimensions = {
         width: trainerArena.clientWidth,
         height: trainerArena.clientHeight,
-        targetSize: mode.targetSize,
-        previous: state.pointer,
-        minTravelRatio: mode.minTravelRatio
-      });
+        targetSize: mode.targetSize
+      };
+      let point;
+
+      if (drill.strategy === "micro") {
+        point = chooseNearbyTarget({
+          ...dimensions,
+          previous: state.pointer,
+          distance: microDistanceFor(mode.targetSize, state.microLevel)
+        });
+      } else if (drill.strategy === "center") {
+        point = choosePatternTarget({
+          ...dimensions,
+          step: state.patternStep,
+          radiusRatio: drill.radiusRatio
+        });
+        state.patternStep += 1;
+      } else {
+        point = chooseTarget({
+          ...dimensions,
+          previous: state.pointer,
+          minTravelRatio: drill.minTravelRatio ?? mode.minTravelRatio
+        });
+      }
 
       state.targetPoint = point;
       state.targetAt = now;
+      const lifetime = targetLifetimeFor(state.drill, state.mode);
+      state.targetDeadline = lifetime ? now + lifetime : 0;
       state.targetId += 1;
       state.armed = true;
       state.pathDistance = 0;
+      state.pathValid = true;
       state.straightDistance = Math.hypot(
         point.x - state.pointer.x,
         point.y - state.pointer.y
@@ -1553,6 +1823,27 @@
       setTimeout(() => burst.remove(), 460);
     }
 
+    function addMissBurst(point) {
+      if (!point) return;
+      const burst = document.createElement("i");
+      burst.className = "hit-burst miss";
+      burst.style.left = `${point.x}px`;
+      burst.style.top = `${point.y}px`;
+      trainerArena.appendChild(burst);
+      setTimeout(() => burst.remove(), 460);
+    }
+
+    function expireTarget(now) {
+      if (!state.armed || state.drill !== "flash") return;
+      state.armed = false;
+      state.shots += 1;
+      state.expiredTargets += 1;
+      state.combo = 0;
+      addMissBurst(state.targetPoint);
+      updateLiveMetrics();
+      spawnTarget(now);
+    }
+
     function registerHit(now, targetId) {
       if (!state.armed || targetId !== state.targetId) return;
       state.armed = false;
@@ -1566,11 +1857,21 @@
 
       state.hits += 1;
       state.reactions.push(reaction);
-      state.efficiencies.push(efficiency);
-      state.combo = reaction <= mode.reactionWindow && efficiency >= .68
+      if (state.pathValid) state.efficiencies.push(efficiency);
+      state.combo = state.pathValid
+        && reaction <= mode.reactionWindow
+        && efficiency >= .68
         ? state.combo + 1
         : 0;
       state.maxCombo = Math.max(state.maxCombo, state.combo);
+
+      if (state.drill === "micro") {
+        state.microCleanHits += 1;
+        if (state.microCleanHits >= 4) {
+          state.microLevel = Math.min(3, state.microLevel + 1);
+          state.microCleanHits = 0;
+        }
+      }
 
       addHitBurst(state.targetPoint);
       updateLiveMetrics();
@@ -1581,6 +1882,7 @@
       if (state.phase !== "running") return;
       cancelAnimationFrame(state.frame);
       target.classList.remove("active");
+      state.targetDeadline = 0;
       $("#timer").textContent = "0.0";
 
       const durationMs = state.durationSeconds * 1000;
@@ -1591,7 +1893,7 @@
         efficiencies: state.efficiencies,
         durationMs,
         maxCombo: state.maxCombo,
-        modeMultiplier: MODES[state.mode].multiplier
+        modeMultiplier: MODES[state.mode].multiplier * DRILLS[state.drill].multiplier
       });
       const rank = rankFor(metrics.score);
 
@@ -1603,17 +1905,33 @@
         : "—";
       $("#result-efficiency").textContent = `${metrics.pathEfficiency}%`;
       $("#result-pace").textContent = `${metrics.hitsPerMinute}/min`;
-      $("#result-title").textContent = `${MODES[state.mode].label} · ${rank} 级`;
+      $("#result-title").textContent =
+        `${DRILLS[state.drill].label} / ${MODES[state.mode].label} · ${rank} 级`;
+      const expirySummary = state.expiredTargets
+        ? `，其中 ${state.expiredTargets} 个目标超时`
+        : "";
       $("#result-summary").textContent =
-        `本轮 ${metrics.shots} 次左键中命中 ${metrics.hits} 次，得分 ${metrics.score}，最高连续稳定命中 ${metrics.maxCombo} 次。`
-        + "成绩用于比较你自己的多轮趋势，不用于跨设备排名。";
-      $("#advice-list").innerHTML = adviceFor(metrics)
+        `本轮 ${metrics.shots} 次机会中命中 ${metrics.hits} 次${expirySummary}，得分 ${metrics.score}，最高连续稳定命中 ${metrics.maxCombo} 次。`
+        + "成绩只适合同一专项、同一目标尺寸的多轮趋势比较。";
+      $("#advice-list").innerHTML = adviceFor(metrics, state.drill)
         .map((item, index) => (
           `<li><b>${String(index + 1).padStart(2, "0")}</b><span>${item}</span></li>`
         ))
         .join("");
       state.armed = false;
       setPhase("complete", "训练完成 · 左键点右下角重测环可再练");
+    }
+
+    function runningStatus(now = performance.now()) {
+      const drill = DRILLS[state.drill];
+      if (state.drill === "flash" && state.targetDeadline) {
+        const targetLeft = Math.max(0, state.targetDeadline - now);
+        return `${drill.label} · ${(targetLeft / 1000).toFixed(1)}秒`;
+      }
+      if (state.drill === "micro") {
+        return `${drill.label} · L${state.microLevel + 1}/4`;
+      }
+      return `${drill.label} · ${MODES[state.mode].label}进行中`;
     }
 
     function animate(now) {
@@ -1624,6 +1942,12 @@
       if (left <= 0) {
         finishSession();
         return;
+      }
+      if (hasTargetExpired(now, state.targetDeadline)) {
+        expireTarget(now);
+      }
+      if (trainerArena.classList.contains("pointer-inside")) {
+        $("#arena-status").textContent = runningStatus(now);
       }
       state.frame = requestAnimationFrame(animate);
     }
@@ -1638,17 +1962,25 @@
       state.efficiencies = [];
       state.combo = 0;
       state.maxCombo = 0;
+      state.expiredTargets = 0;
+      state.patternStep = 0;
+      state.microLevel = 0;
+      state.microCleanHits = 0;
       updateLiveMetrics();
-      setPhase("running", `${MODES[state.mode].label}进行中`);
+      setPhase(
+        "running",
+        `${DRILLS[state.drill].label} · ${MODES[state.mode].label}进行中`
+      );
       spawnTarget(now);
       state.frame = requestAnimationFrame(animate);
     }
 
-    function resetSession() {
+    function resetSession(statusText = "等待准星进入启动环") {
       cancelAnimationFrame(state.frame);
       state.startedAt = 0;
       state.deadline = 0;
       state.targetAt = 0;
+      state.targetDeadline = 0;
       state.targetId = 0;
       state.armed = false;
       state.targetPoint = null;
@@ -1659,10 +1991,28 @@
       state.efficiencies = [];
       state.combo = 0;
       state.maxCombo = 0;
+      state.expiredTargets = 0;
+      state.patternStep = 0;
+      state.microLevel = 0;
+      state.microCleanHits = 0;
+      state.pathValid = true;
       target.classList.remove("active");
       $("#timer").textContent = `${state.durationSeconds}.0`;
       updateLiveMetrics();
-      setPhase("idle", "等待准星进入启动环");
+      setPhase("idle", statusText);
+    }
+
+    function selectDrill(drillKey) {
+      if (!DRILLS[drillKey] || state.phase === "running") return;
+      state.drill = drillKey;
+      const drill = DRILLS[drillKey];
+      $("#drill-readout").textContent = `${drill.label} · ${drill.descriptor}`;
+      $("#arena-note").textContent =
+        `${drill.note} · 实体圆外不算命中`;
+      drillButtons.forEach((button) => {
+        button.setAttribute("aria-pressed", String(button.dataset.drill === drillKey));
+      });
+      resetSession();
     }
 
     function selectMode(modeKey) {
@@ -1715,6 +2065,10 @@
         finishSession();
         return;
       }
+      if (hasTargetExpired(now, state.targetDeadline)) {
+        expireTarget(now);
+        return;
+      }
 
       if (state.previousPointer) {
         state.pathDistance += Math.hypot(
@@ -1737,9 +2091,24 @@
         registerHit(now, targetId);
       } else {
         state.combo = 0;
-        updateLiveMetrics();
+        if (state.drill === "micro") {
+          state.microCleanHits = 0;
+          state.microLevel = Math.max(0, state.microLevel - 1);
+        }
+        if (state.drill === "flash") {
+          state.armed = false;
+          addMissBurst(state.targetPoint);
+          updateLiveMetrics();
+          spawnTarget(now);
+        } else {
+          updateLiveMetrics();
+        }
       }
     }
+
+    drillButtons.forEach((button) => {
+      button.addEventListener("click", () => selectDrill(button.dataset.drill));
+    });
 
     modeButtons.forEach((button) => {
       button.addEventListener("click", () => selectMode(button.dataset.mode));
@@ -1755,7 +2124,7 @@
       if (event.pointerType !== "mouse") return;
       trainerArena.classList.add("pointer-inside");
       if (state.phase === "running") {
-        $("#arena-status").textContent = `${MODES[state.mode].label}进行中`;
+        $("#arena-status").textContent = runningStatus();
       }
     });
 
@@ -1764,7 +2133,8 @@
       trainerArena.classList.remove("pointer-inside");
       state.previousPointer = null;
       if (state.phase === "running") {
-        $("#arena-status").textContent = "准星已离开 · 计时继续";
+        state.pathValid = false;
+        $("#arena-status").textContent = "准星已离开 · 本目标不计路径效率";
       }
     });
 
@@ -1789,15 +2159,23 @@
       }
     });
 
+    window.addEventListener("resize", () => {
+      if (state.phase === "running") {
+        resetSession("窗口尺寸已变化 · 请重新开始");
+      }
+    });
+
+    selectDrill("random");
     selectMode("standard");
     selectDuration(20);
 
     window.__AIM_TRAINER__ = {
-      version: "1.0.1",
+      version: "1.1.0",
       core: AIM_TRAINER_CORE,
       snapshot() {
         return {
           phase: state.phase,
+          drill: state.drill,
           mode: state.mode,
           durationSeconds: state.durationSeconds,
           hits: state.hits,
@@ -1807,6 +2185,10 @@
           armed: state.armed,
           targetPoint: state.targetPoint ? { ...state.targetPoint } : null,
           targetSize: MODES[state.mode].targetSize,
+          targetDeadline: state.targetDeadline,
+          expiredTargets: state.expiredTargets,
+          patternStep: state.patternStep,
+          microLevel: state.microLevel,
           combo: state.combo,
           maxCombo: state.maxCombo
         };
